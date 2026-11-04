@@ -33,3 +33,9 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export interface InviteMemberInput {
+  email: string;
+  role: OrganizationRole;
+  fullName?: string;
+}
+
