@@ -145,6 +145,7 @@ pnpm qa:check
 
 ## 7. Additional Developer Documentation
 
+- [Local Database Inspection & Management Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/database-access.md)
 - [Monorepo & Shared Packages Architecture](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/monorepo-and-packages.md)
 - [`pnpm --filter` Guide for Testing & Execution](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/pnpm-filter-guide.md)
 - [REST API & Database Integration Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/api-and-database.md)
@@ -152,5 +153,6 @@ pnpm qa:check
 - [Real-Time WebSocket Gateway](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/websocket-gateway.md)
 - [Virtual Edge Device Simulator](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/device-simulator.md)
 - [Automated Alerting & Incident Management Engine](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/alert-rules-and-incidents.md)
+- [Historical Telemetry & TimescaleDB Continuous Aggregates](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/historical-telemetry-and-aggregates.md)
 - [Frontend Application (`apps/industrial`)](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/frontend-application.md)
 

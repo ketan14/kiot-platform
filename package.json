@@ -23,7 +23,9 @@
     "docker:logs": "docker compose -f infrastructure/docker/docker-compose.dev.yml logs -f",
     "db:migrate": "./scripts/migrate-db.sh",
     "db:seed": "./scripts/seed-db.sh",
-    "db:reset": "./scripts/migrate-db.sh --reset && ./scripts/seed-db.sh"
+    "db:reset": "./scripts/migrate-db.sh --reset && ./scripts/seed-db.sh",
+    "db:psql": "docker exec -it kiot-postgres-dev psql -U postgres -d kiot_dev",
+    "db:tables": "docker exec kiot-postgres-dev psql -U postgres -d kiot_dev -c '\\dt'"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

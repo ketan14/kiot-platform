@@ -9,11 +9,12 @@ import {
   Radio,
   Server,
   Bell,
+  TrendingUp,
 } from 'lucide-react';
 import { useTelemetryStore } from '../../stores/telemetryStore';
 import { useIncidents } from '../../api/alerts';
 
-export type NavTab = 'overview' | 'machines' | 'scope' | 'commands' | 'alerts';
+export type NavTab = 'overview' | 'machines' | 'scope' | 'commands' | 'alerts' | 'analytics';
 
 interface SidebarProps {
   currentTab: NavTab;
@@ -30,6 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
     { id: 'overview', label: 'Fleet Overview', icon: LayoutDashboard },
     { id: 'machines', label: 'CNC & Machines', icon: Cpu },
     { id: 'scope', label: 'Telemetry Scope', icon: Activity },
+    { id: 'analytics', label: 'Historical Analytics', icon: TrendingUp },
     { id: 'commands', label: 'Actuators & Control', icon: Sliders },
     { id: 'alerts', label: 'Alerts & Incidents', icon: Bell },
   ] as const;

@@ -6,6 +6,7 @@ import { OverviewView } from './views/OverviewView';
 import { ScopeView } from './views/ScopeView';
 import { CommandsView } from './views/CommandsView';
 import { AlertsView } from './views/AlertsView';
+import { AnalyticsView } from './views/AnalyticsView';
 import { AlertBanner } from './components/Alerts/AlertBanner';
 import { MachinesTable } from './components/Machines/MachinesTable';
 import { useMachines } from './api/machines';
@@ -77,6 +78,8 @@ const IndustrialDashboard: React.FC = () => {
             {currentTab === 'commands' && <CommandsView />}
 
             {currentTab === 'alerts' && <AlertsView />}
+
+            {currentTab === 'analytics' && <AnalyticsView />}
           </div>
         </main>
       </div>

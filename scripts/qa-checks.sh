@@ -117,6 +117,13 @@ else
   check_fail "Container 'kiot-emqx-dev' is not running" "Run: pnpm docker:up"
 fi
 
+# Adminer DB Web UI
+if docker ps --format '{{.Names}}' | grep -q "^kiot-adminer-dev$"; then
+  check_pass "Adminer DB Web UI running (http://localhost:8085)"
+else
+  check_warn "Container 'kiot-adminer-dev' is not running (Run: pnpm docker:up)"
+fi
+
 # ------------------------------------------------------------------------------
 # 3. Database Schema, Hypertables, & Seed Verification
 # ------------------------------------------------------------------------------
