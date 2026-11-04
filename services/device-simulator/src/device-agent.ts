@@ -5,8 +5,10 @@ import { PowerMeterPhysicsModel } from './models/power-meter.js';
 export interface DeviceAgentOptions {
   brokerUrl: string;
   organizationId: string;
-  cncDeviceId: string;
-  meterDeviceId: string;
+  cncDeviceId?: string;
+  cncDeviceIds?: string[];
+  meterDeviceId?: string;
+  meterDeviceIds?: string[];
   intervalMs?: number;
   onLog?: (msg: string) => void;
 }
@@ -15,12 +17,30 @@ export class VirtualDeviceFleet {
   private client: MqttClient | null = null;
   private intervalTimer: NodeJS.Timeout | null = null;
 
-  public readonly cnc: CncPhysicsModel;
-  public readonly meter: PowerMeterPhysicsModel;
+  public readonly cncs: CncPhysicsModel[] = [];
+  public readonly meters: PowerMeterPhysicsModel[] = [];
 
   constructor(private readonly options: DeviceAgentOptions) {
-    this.cnc = new CncPhysicsModel(options.cncDeviceId);
-    this.meter = new PowerMeterPhysicsModel(options.meterDeviceId);
+    const cncIds =
+      options.cncDeviceIds && options.cncDeviceIds.length > 0
+        ? options.cncDeviceIds
+        : [options.cncDeviceId || 'DEV-ESP32-001'];
+
+    const meterIds =
+      options.meterDeviceIds && options.meterDeviceIds.length > 0
+        ? options.meterDeviceIds
+        : [options.meterDeviceId || 'DEV-METER-001'];
+
+    this.cncs = cncIds.map((id) => new CncPhysicsModel(id));
+    this.meters = meterIds.map((id) => new PowerMeterPhysicsModel(id));
+  }
+
+  public get cnc(): CncPhysicsModel {
+    return this.cncs[0]!;
+  }
+
+  public get meter(): PowerMeterPhysicsModel {
+    return this.meters[0]!;
   }
 
   private log(message: string): void {
@@ -32,7 +52,7 @@ export class VirtualDeviceFleet {
   }
 
   public async start(): Promise<void> {
-    const { brokerUrl, organizationId, cncDeviceId, meterDeviceId } = this.options;
+    const { brokerUrl, organizationId } = this.options;
 
     this.client = mqtt.connect(brokerUrl, {
       clientId: `kiot_sim_fleet_${Math.random().toString(16).slice(2, 8)}`,
@@ -51,17 +71,18 @@ export class VirtualDeviceFleet {
       });
     });
 
-    // Subscriptions for inbound commands (exact topic only, avoiding ACK loop)
+    // Subscriptions for inbound commands across all simulated devices
     const commandTopics = [
-      `kiot/${organizationId}/devices/${cncDeviceId}/commands`,
-      `kiot/${organizationId}/devices/${meterDeviceId}/commands`,
+      ...this.cncs.map((c) => `kiot/${organizationId}/devices/${c.deviceId}/commands`),
+      ...this.meters.map((m) => `kiot/${organizationId}/devices/${m.deviceId}/commands`),
     ];
 
     this.client.subscribe(commandTopics, { qos: 1 }, (err) => {
       if (err) {
         this.log(`❌ Failed to subscribe to command topics: ${err.message}`);
       } else {
-        this.log(`✔ Subscribed to inbound commands: ${cncDeviceId} & ${meterDeviceId}`);
+        const activeIds = [...this.cncs.map((c) => c.deviceId), ...this.meters.map((m) => m.deviceId)];
+        this.log(`✔ Subscribed to inbound commands for [${activeIds.join(', ')}]`);
       }
     });
 
@@ -70,13 +91,22 @@ export class VirtualDeviceFleet {
       this.handleInboundMqttMessage(topic, messageBuf);
     });
 
-    // Publish initial reported device state
-    this.publishDeviceState(cncDeviceId, {
-      status: 'online',
-      firmware_version: 'v2.4.1-esp32',
-      spindle_state: 'IDLE',
-      coolant_pump: 'ON',
-    });
+    // Publish initial reported device state for each device
+    for (const c of this.cncs) {
+      this.publishDeviceState(c.deviceId, {
+        status: 'online',
+        firmware_version: 'v2.4.1-esp32',
+        spindle_state: 'IDLE',
+        coolant_pump: 'ON',
+      });
+    }
+
+    for (const m of this.meters) {
+      this.publishDeviceState(m.deviceId, {
+        status: 'online',
+        firmware_version: 'v1.0.0-meter',
+      });
+    }
 
     // Start periodic high-resolution telemetry streaming
     const interval = this.options.intervalMs || 1000;
@@ -112,23 +142,24 @@ export class VirtualDeviceFleet {
     let executionSuccess = true;
     let executionNote = 'Executed successfully';
 
-    if (deviceId === this.cnc.deviceId) {
+    const matchedCnc = this.cncs.find((c) => c.deviceId === deviceId);
+    if (matchedCnc) {
       if (commandType === 'SET_SPEED') {
         const rpm = Number(cmdData.rpm);
         if (!isNaN(rpm)) {
-          this.cnc.setTargetSpeed(rpm);
+          matchedCnc.setTargetSpeed(rpm);
           executionNote = `VFD Inverter set target to ${rpm} RPM`;
         }
       } else if (commandType === 'SET_RELAY') {
         const relay = String(cmdData.relay || 'coolant_pump');
         const state = String(cmdData.state || 'ON').toUpperCase() as 'ON' | 'OFF';
-        this.cnc.setRelayState(relay, state);
+        matchedCnc.setRelayState(relay, state);
         executionNote = `Relay '${relay}' switched ${state}`;
       } else if (commandType === 'EMERGENCY_STOP') {
-        this.cnc.emergencyStop();
+        matchedCnc.emergencyStop();
         executionNote = 'EMERGENCY STOP TRIGGERED: Motor inverter halted';
       } else if (commandType === 'RESET_FAULT') {
-        this.cnc.resetFault();
+        matchedCnc.resetFault();
         executionNote = 'Fault flags cleared. Resuming nominal operation';
       }
     }
@@ -175,15 +206,19 @@ export class VirtualDeviceFleet {
 
     const { organizationId } = this.options;
 
-    // 1. Advance CNC physics & publish
-    const cncData = this.cnc.tick();
-    const cncTopic = `kiot/${organizationId}/devices/${this.cnc.deviceId}/telemetry`;
-    this.client.publish(cncTopic, JSON.stringify(cncData), { qos: 1 });
+    // 1. Advance all CNC physics & publish
+    for (const cnc of this.cncs) {
+      const cncData = cnc.tick();
+      const cncTopic = `kiot/${organizationId}/devices/${cnc.deviceId}/telemetry`;
+      this.client.publish(cncTopic, JSON.stringify(cncData), { qos: 1 });
+    }
 
-    // 2. Advance Power Meter physics & publish
-    const meterData = this.meter.tick();
-    const meterTopic = `kiot/${organizationId}/devices/${this.meter.deviceId}/telemetry`;
-    this.client.publish(meterTopic, JSON.stringify(meterData), { qos: 1 });
+    // 2. Advance all Power Meter physics & publish
+    for (const meter of this.meters) {
+      const meterData = meter.tick();
+      const meterTopic = `kiot/${organizationId}/devices/${meter.deviceId}/telemetry`;
+      this.client.publish(meterTopic, JSON.stringify(meterData), { qos: 1 });
+    }
   }
 
   public stop(): void {

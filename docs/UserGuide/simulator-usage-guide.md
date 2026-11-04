@@ -32,12 +32,25 @@ Upon startup, the simulator connects to the local EMQX broker (`mqtt://localhost
 
 ## 2. Emulated Edge Devices
 
-The simulator automatically provisions and runs two industrial nodes belonging to the default tenant (`00000000-0000-4000-a000-000000000001`):
+The simulator provisions and runs industrial nodes belonging to the tenant (`00000000-0000-4000-a000-000000000001`):
 
 | Device Identifier | Associated Machine | Description | Telemetry Streamed |
 | :--- | :--- | :--- | :--- |
-| **`DEV-ESP32-001`** | `MCH-001` (Apex 5-Axis VMC) | High-speed CNC Spindle Controller | Spindle Speed (RPM), Bearing Temp (°C), Radial Vibration (mm/s), Feed Rate (mm/min), Coolant Pump State |
-| **`DEV-METER-001`** | `MCH-001` (Apex 5-Axis VMC) | 3-Phase Industrial Power Meter | Voltage (V), Current (A), Active Real Power (kW), Power Factor ($\cos\phi$), Frequency (Hz), Energy (kWh) |
+| **`DEV-ESP32-001`** | `MCH-001` (Apex 5-Axis VMC) | High-speed CNC Spindle Controller | Spindle Speed (RPM), Bearing Temp (°C), Radial Vibration (mm/s), Coolant Pump State |
+| **`DEV-ESP32-003`** | Line 1 Sensor Node | Stamping Press #3 Vibration Sensor | Spindle Speed (RPM), Bearing Temp (°C), Radial Vibration (mm/s), Coolant Pump State |
+| **`DEV-METER-001`** | `MCH-001` (Apex 5-Axis VMC) | 3-Phase Industrial Power Meter | Voltage (V), Current (A), Active Real Power (kW), Power Factor ($\cos\phi$), Frequency (Hz) |
+
+### Simulating Any Custom or Additional Device
+
+To simulate any custom device (or multiple devices concurrently), pass `CNC_DEVICE_ID` or a comma-separated list `CNC_DEVICE_IDS`:
+
+```bash
+# Simulate a specific onboarded device:
+CNC_DEVICE_ID=DEV-ESP32-003 pnpm sim:device
+
+# Simulate multiple devices concurrently:
+CNC_DEVICE_IDS=DEV-ESP32-001,DEV-ESP32-003 pnpm sim:device
+```
 
 ---
 

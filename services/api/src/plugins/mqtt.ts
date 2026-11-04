@@ -40,3 +40,27 @@ export async function publishDeviceCommand(
   });
 }
 
+/**
+ * Ingest/publish telemetry on standard KIOT topic:
+ * kiot/{organizationId}/devices/{deviceId}/telemetry
+ */
+export async function publishDeviceTelemetry(
+  organizationId: string,
+  deviceId: string,
+  telemetry: Record<string, unknown>
+): Promise<void> {
+  const topic = `kiot/${organizationId}/devices/${deviceId}/telemetry`;
+  const payload = JSON.stringify(telemetry);
+
+  return new Promise((resolve, reject) => {
+    mqttClient.publish(topic, payload, { qos: 1 }, (err) => {
+      if (err) {
+        console.error(`[MQTT] Failed to publish telemetry to ${topic}:`, err);
+        return reject(err);
+      }
+      console.log(`[MQTT] Telemetry published to ${topic}`);
+      resolve();
+    });
+  });
+}
+

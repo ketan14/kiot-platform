@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { requireTenantContext } from '../middleware/tenant.js';
 import { withTenantClient, pool } from '../plugins/db.js';
 import { getDeviceLatestState } from '../plugins/redis.js';
+import { publishDeviceTelemetry } from '../plugins/mqtt.js';
 
 export async function telemetryRoutes(app: FastifyInstance): Promise<void> {
   // Get latest live state for a device (Hot Cache from Redis)
@@ -54,6 +55,80 @@ export async function telemetryRoutes(app: FastifyInstance): Promise<void> {
         readings: result.rows,
       };
     }
+  );
+
+  // Ingest/Publish telemetry via HTTP POST (e.g. for testing higher temperature or direct HTTP sensors)
+  const handleIngestTelemetry = async (request: any, reply: any) => {
+    const tenant = request.tenant!;
+    const query = request.query as { device_id?: string; deviceId?: string };
+    const body = (request.body || {}) as Record<string, any>;
+
+    const deviceId = query.device_id || query.deviceId || body.device_id || body.deviceId;
+
+    if (!deviceId) {
+      return reply.status(400).send({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: 'device_id is required either in query string (?device_id=...) or JSON body',
+      });
+    }
+
+    // Verify device exists and belongs to this organization
+    const deviceCheck = await pool.query(
+      'SELECT id, product_id, status FROM devices WHERE id = $1 AND organization_id = $2;',
+      [deviceId, tenant.organizationId]
+    );
+
+    if (deviceCheck.rowCount === 0) {
+      return reply.status(404).send({
+        statusCode: 404,
+        error: 'Not Found',
+        message: `Device '${deviceId}' not found in this organization.`,
+      });
+    }
+
+    // Build payload: supports flat metrics or nested metrics
+    const telemetryPayload: Record<string, any> = {
+      device_id: deviceId,
+      timestamp: body.timestamp || new Date().toISOString(),
+      ...(body.metrics ? body.metrics : body),
+    };
+    telemetryPayload.device_id = deviceId;
+    delete telemetryPayload.metrics;
+
+    // Publish to EMQX MQTT broker on standard topic
+    await publishDeviceTelemetry(tenant.organizationId, deviceId, telemetryPayload);
+
+    return reply.status(200).send({
+      success: true,
+      message: 'Telemetry ingested and dispatched to real-time ingestion pipeline',
+      deviceId,
+      telemetry: telemetryPayload,
+    });
+  };
+
+  app.post(
+    '/v1/telemetry',
+    {
+      preHandler: [requireTenantContext],
+      schema: {
+        description: 'Ingest real-time device telemetry via HTTP REST API',
+        tags: ['Telemetry & Time-Series'],
+      },
+    },
+    handleIngestTelemetry
+  );
+
+  app.post(
+    '/v1/telemetry/latest',
+    {
+      preHandler: [requireTenantContext],
+      schema: {
+        description: 'Ingest real-time device telemetry via HTTP POST to /latest endpoint',
+        tags: ['Telemetry & Time-Series'],
+      },
+    },
+    handleIngestTelemetry
   );
 
   // Query historical telemetry rollups (TimescaleDB Continuous Aggregates)

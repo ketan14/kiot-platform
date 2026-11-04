@@ -10,9 +10,9 @@ console.log(`
 ==================================================================
   • Broker:       ${brokerUrl}
   • Organization: ${config.ORG_ID}
-  • Node 1 (CNC): ${config.CNC_DEVICE_ID} (CNC Milling Machine 01)
-  • Node 2 (Pwr): ${config.METER_DEVICE_ID} (3-Phase Smart Energy Meter)
-  • Rate:         1 packet / sec (1000ms)
+  • CNC Nodes:    ${config.CNC_DEVICE_IDS.join(', ')}
+  • Power Nodes:  ${config.METER_DEVICE_ID}
+  • Rate:         1 packet / sec (${config.TELEMETRY_INTERVAL_MS}ms)
 ==================================================================
   Interactive Keyboard Controls:
     [1] 🟢 Mode: NORMAL (Nominal 3200 RPM, Coolant ON)
@@ -28,7 +28,7 @@ console.log(`
 const fleet = new VirtualDeviceFleet({
   brokerUrl,
   organizationId: config.ORG_ID,
-  cncDeviceId: config.CNC_DEVICE_ID,
+  cncDeviceIds: config.CNC_DEVICE_IDS,
   meterDeviceId: config.METER_DEVICE_ID,
   intervalMs: config.TELEMETRY_INTERVAL_MS,
   onLog: (msg) => {
@@ -48,22 +48,22 @@ if (process.stdin.isTTY) {
   process.stdin.on('data', (key: string) => {
     const k = key.trim().toLowerCase();
     if (k === '1') {
-      fleet.cnc.setMode('NORMAL');
-      console.log('\n>>> Switched to NORMAL MODE (Nominal 3200 RPM, Coolant ON)');
+      fleet.cncs.forEach((c) => c.setMode('NORMAL'));
+      console.log('\n>>> Switched all CNC nodes to NORMAL MODE (Nominal 3200 RPM, Coolant ON)');
     } else if (k === '2') {
-      fleet.cnc.setMode('HIGH_LOAD');
-      console.log('\n>>> Switched to HIGH LOAD MODE (4800 RPM)');
+      fleet.cncs.forEach((c) => c.setMode('HIGH_LOAD'));
+      console.log('\n>>> Switched all CNC nodes to HIGH LOAD MODE (4800 RPM)');
     } else if (k === '3') {
-      fleet.cnc.setMode('VIBRATION_FAULT');
+      fleet.cncs.forEach((c) => c.setMode('VIBRATION_FAULT'));
       console.log('\n>>> INJECTED VIBRATION FAULT! Radial vibration will spike past 4.5 mm/s alarm line!');
     } else if (k === '4') {
-      fleet.cnc.setMode('OVERHEAT');
+      fleet.cncs.forEach((c) => c.setMode('OVERHEAT'));
       console.log('\n>>> INJECTED THERMAL FAULT! Bearing temperature climbing past 75°C trip threshold!');
     } else if (k === '5') {
-      fleet.cnc.emergencyStop();
-      console.log('\n>>> EMERGENCY STOP EXECUTED! Spindle cut off.');
+      fleet.cncs.forEach((c) => c.emergencyStop());
+      console.log('\n>>> EMERGENCY STOP EXECUTED! Spindles cut off.');
     } else if (k === '6') {
-      fleet.cnc.resetFault();
+      fleet.cncs.forEach((c) => c.resetFault());
       console.log('\n>>> FAULTS RESET: Resuming normal operation.');
     } else if (k === 'q' || key === '\u0003') {
       // Ctrl+C or 'q'
@@ -83,4 +83,3 @@ process.on('SIGTERM', () => {
   fleet.stop();
   process.exit(0);
 });
-
