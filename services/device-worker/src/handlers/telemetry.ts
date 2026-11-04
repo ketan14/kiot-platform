@@ -30,7 +30,7 @@ export async function handleTelemetryMessage(
   const productId = (payload.productId as ProductType) || 'industrial';
   const gatewayId = (payload.gatewayId as string) || undefined;
 
-  // 1. Support batch readings array or single metric
+  // 1. Support batch readings array, single metric, or key-value metric map
   const items: Array<{ metric: string; value: number; unit: string }> = [];
 
   if (Array.isArray(payload.readings)) {
@@ -49,6 +49,18 @@ export async function handleTelemetryMessage(
       value: payload.value,
       unit: (payload.unit as string) || '',
     });
+  } else {
+    // Key-value object map: e.g. { vibration_rms: 3.42, temperature_bearing: 58.1 }
+    const reservedKeys = new Set(['timestamp', 'deviceTimestamp', 'serverTimestamp', 'productId', 'gatewayId', 'deviceId', 'quality', 'organizationId']);
+    for (const [key, val] of Object.entries(payload)) {
+      if (!reservedKeys.has(key) && typeof val === 'number') {
+        items.push({
+          metric: key,
+          value: val,
+          unit: '',
+        });
+      }
+    }
   }
 
   if (items.length === 0) {

@@ -7,7 +7,8 @@ import { telemetryBuffer } from './buffer.js';
 import { pool } from './db.js';
 import { redis } from './redis.js';
 
-const clientId = `kiot_device_worker_${process.pid}_${Math.random().toString(16).substring(2, 6)}`;
+const workerInstance = process.env.WORKER_INSTANCE || process.env.NODE_APP_INSTANCE || 'dev';
+const clientId = `kiot_device_worker_${workerInstance}_${process.pid}`;
 const brokerUrl = `mqtt://${config.EMQX_HOST}:${config.EMQX_PORT}`;
 
 console.log(`
@@ -23,7 +24,7 @@ console.log(`
 
 const client = mqtt.connect(brokerUrl, {
   clientId,
-  clean: false, // Maintain persistent session for reliable delivery
+  clean: true, // Auto-cleanup disconnected sessions in development to prevent queue trapping
   connectTimeout: 5000,
   reconnectPeriod: 2000,
 });

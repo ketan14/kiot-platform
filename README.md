@@ -18,6 +18,12 @@ For complete technical specifications, guidelines, and architectural decisions:
    *Standardized frontend stack (React 19, TypeScript, Vite, TanStack Router/Query, Tailwind CSS v4, shadcn/ui, ECharts), routing patterns, URL state management, and Tauri compatibility.*
 4. **[ADR-001: Frontend Technology Stack Selection](file:///home/ketan/projects/Krisha/kiot-platform/docs/architecture/decisions/ADR-001-frontend-stack-react-vite-tanstack-router.md)**  
    *Architecture Decision Record documenting the selection of React 19 + Vite + TanStack Router and the deliberate exclusion of Next.js for initial authenticated dashboards.*
+5. **[Developer Guide (`docs/DevGuide/`)](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/getting-started.md)**  
+   *Prerequisites, monorepo packages, Fastify REST API, TimescaleDB, and IoT Device Worker ingestion pipeline.*
+6. **[User & Operator Guide (`docs/UserGuide/`)](file:///home/ketan/projects/Krisha/kiot-platform/docs/UserGuide/overview.md)**  
+   *Product lines, multi-tenant hierarchy, device onboarding, device shadow sync, and factory machine monitoring.*
+7. **[QA & Testing Documentation (`docs/QADocs/`)](file:///home/ketan/projects/Krisha/kiot-platform/docs/QADocs/smoke-tests.md)**  
+   *Testing pyramid, step-by-step smoke testing procedures, and 20-point verification test matrix.*
 
 ---
 
@@ -68,3 +74,59 @@ kiot-platform/
 ├── infrastructure/                     # Docker Compose, EMQX, and deployment configs
 └── docs/                               # Architecture, IoT, database, and system docs
 ```
+
+---
+
+## 🚀 Quickstart & Local Development
+
+### 1. Launch Backing Services (Docker Compose)
+```bash
+pnpm docker:up
+```
+Starts TimescaleDB (PostgreSQL 16), Redis 7 (port 6380), and EMQX 5.8 MQTT broker (port 1883).
+
+### 2. Apply Database Migrations & Seed Demo Data
+```bash
+pnpm db:migrate
+pnpm db:seed
+```
+
+### 3. Start Backend Services
+In separate terminal panes (or run concurrently via Turborepo):
+```bash
+# Fastify REST API & Swagger UI (http://localhost:3000/docs)
+pnpm dev:api
+
+# Dedicated Real-Time WebSocket Gateway (ws://localhost:3001)
+pnpm dev:ws
+
+# High-Throughput IoT Ingestion Worker (EMQX Shared Subscriptions -> TimescaleDB)
+pnpm dev:worker
+```
+
+### 4. Start Industrial Dashboard (React 19 + Vite)
+```bash
+pnpm dev:industrial
+```
+Navigate to **`http://localhost:5173/`** to view the live dashboard.
+
+### 5. Stream Simulated Industrial Telemetry
+```bash
+pnpm sim:telemetry
+```
+Streams continuous sine-wave CNC spindle RPM, radial vibration RMS, and bearing temperature to EMQX and down to the live canvas charts over WebSocket.
+
+---
+
+## 🧪 Verification & Automated Suites
+```bash
+# Monorepo TypeScript check
+pnpm check-types
+
+# Phase 5: WebSocket Gateway Verification Suite
+pnpm --filter @kiot/websocket-gateway exec tsx ../../scripts/verify-websocket.ts
+
+# Full End-to-End Pipeline (MQTT -> Ingest -> TimescaleDB/Redis -> WS -> API)
+pnpm --filter @kiot/device-worker exec tsx ../../scripts/test-e2e-pipeline.ts
+```
+
