@@ -41,3 +41,11 @@ A digital state document representing the configuration of a device:
 - **Reported State:** The actual physical state reported back by the device.
 - **Delta:** The difference between desired and reported states.
 
+---
+
+## 3. Related User Guides
+
+- [Device & Gateway Management Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/UserGuide/device-management.md)
+- [Industrial Equipment Monitoring Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/UserGuide/industrial-monitoring.md)
+- [Virtual Edge Device Simulator User Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/UserGuide/simulator-usage-guide.md)
+

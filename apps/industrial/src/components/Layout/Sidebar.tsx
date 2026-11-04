@@ -8,10 +8,12 @@ import {
   ShieldCheck,
   Radio,
   Server,
+  Bell,
 } from 'lucide-react';
 import { useTelemetryStore } from '../../stores/telemetryStore';
+import { useIncidents } from '../../api/alerts';
 
-export type NavTab = 'overview' | 'machines' | 'scope' | 'commands';
+export type NavTab = 'overview' | 'machines' | 'scope' | 'commands' | 'alerts';
 
 interface SidebarProps {
   currentTab: NavTab;
@@ -21,12 +23,15 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => {
   const status = useTelemetryStore((s) => s.status);
   const packets = useTelemetryStore((s) => s.packetsReceived);
+  const { data: openIncidents } = useIncidents('OPEN');
+  const openCount = openIncidents?.length || 0;
 
   const navItems = [
     { id: 'overview', label: 'Fleet Overview', icon: LayoutDashboard },
     { id: 'machines', label: 'CNC & Machines', icon: Cpu },
     { id: 'scope', label: 'Telemetry Scope', icon: Activity },
     { id: 'commands', label: 'Actuators & Control', icon: Sliders },
+    { id: 'alerts', label: 'Alerts & Incidents', icon: Bell },
   ] as const;
 
   return (
@@ -71,6 +76,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
             >
               <Icon className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
               <span>{item.label}</span>
+              {item.id === 'alerts' && openCount > 0 && (
+                <span className="ml-auto px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white animate-pulse">
+                  {openCount}
+                </span>
+              )}
             </button>
           );
         })}

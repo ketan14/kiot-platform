@@ -3,6 +3,7 @@ import { config } from './config.js';
 import { handleTelemetryMessage } from './handlers/telemetry.js';
 import { handleStateMessage } from './handlers/state.js';
 import { handleCommandAckMessage } from './handlers/command-ack.js';
+import { alertEvaluator } from './alerts/evaluator.js';
 import { telemetryBuffer } from './buffer.js';
 import { pool } from './db.js';
 import { redis } from './redis.js';
@@ -36,8 +37,9 @@ const SHARED_TOPICS = [
   '$share/ingestion_group/kiot/+/devices/+/commands/+/ack',
 ];
 
-client.on('connect', () => {
+client.on('connect', async () => {
   console.log(`[Worker] Connected to EMQX Broker. Subscribing to shared topics...`);
+  await alertEvaluator.start();
   client.subscribe(SHARED_TOPICS, { qos: 1 }, (err, granted) => {
     if (err) {
       console.error('[Worker] Subscription error:', err);
@@ -75,6 +77,7 @@ client.on('error', (err) => {
 async function shutdown(signal: string): Promise<void> {
   console.log(`\n[Worker] Received ${signal}. Gracefully shutting down...`);
 
+  alertEvaluator.stop();
   client.end(true, () => {
     console.log('[Worker] MQTT client disconnected.');
   });

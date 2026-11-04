@@ -1,5 +1,8 @@
 # KIOT Platform – QA Test Matrix & Verification Checklist
 
+> [!IMPORTANT]
+> For browser-based manual testing and pre-flight environment checks, refer to the **[Mandatory Application Pre-Flight Checklist & QA Test Cases](file:///home/ketan/projects/Krisha/kiot-platform/docs/QADocs/mandatory-application-checklist.md)**.
+
 | Test ID | Subsystem | Test Scenario | Verification Command / Method | Expected Output | Status |
 |---|---|---|---|---|---|
 | **INF-01** | Infrastructure | EMQX MQTT Broker Health | `docker compose -f infrastructure/docker/docker-compose.dev.yml ps` | Container is running and healthy on ports 1883, 8883, 18083. | ✅ Passed |

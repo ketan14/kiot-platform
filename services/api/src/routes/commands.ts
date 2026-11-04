@@ -39,7 +39,8 @@ export async function commandRoutes(app: FastifyInstance): Promise<void> {
       };
       const tenant = request.tenant!;
 
-      return withTenantClient(tenant.userId, tenant.organizationId, async (client) => {
+      // 1. Insert command into database within committed tenant transaction
+      const command = await withTenantClient(tenant.userId, tenant.organizationId, async (client) => {
         // Verify device exists and belongs to this organization
         const deviceCheck = await client.query(
           `SELECT id, status FROM devices WHERE id = $1 AND organization_id = $2;`,
@@ -47,12 +48,11 @@ export async function commandRoutes(app: FastifyInstance): Promise<void> {
         );
 
         if (deviceCheck.rowCount === 0) {
-          return reply.status(404).send({ error: 'Device not found' });
+          return null;
         }
 
         const expiresAt = new Date(Date.now() + (ttlSeconds || 300) * 1000);
 
-        // 1. Insert command into database
         const insertQuery = `
           INSERT INTO device_commands (
             organization_id, device_id, command_type, payload, status, issued_by, expires_at
@@ -68,29 +68,41 @@ export async function commandRoutes(app: FastifyInstance): Promise<void> {
           expiresAt.toISOString(),
         ]);
 
-        const command = insertResult.rows[0];
+        return insertResult.rows[0];
+      });
 
-        // 2. Publish command over MQTT to EMQX broker
-        try {
-          await publishDeviceCommand(tenant.organizationId, deviceId, {
-            commandId: command.id,
-            commandType,
-            payload,
-            expiresAt: command.expires_at,
-          });
+      if (!command) {
+        return reply.status(404).send({ error: 'Device not found' });
+      }
 
-          // Update command status to SENT
-          await client.query(
-            `UPDATE device_commands SET status = 'SENT', updated_at = now() WHERE id = $1;`,
+      // 2. Now that the record is fully committed and visible in PostgreSQL, publish to MQTT
+      try {
+        await publishDeviceCommand(tenant.organizationId, deviceId, {
+          commandId: command.id,
+          commandType,
+          payload,
+          expiresAt: command.expires_at,
+        });
+
+        // Update command status to SENT only if it hasn't already been transitioned to SUCCEEDED/FAILED by fast edge ACK
+        await withTenantClient(tenant.userId, tenant.organizationId, async (client) => {
+          const updateRes = await client.query(
+            `UPDATE device_commands SET status = 'SENT', updated_at = now() WHERE id = $1 AND status = 'PENDING' RETURNING status;`,
             [command.id]
           );
-          command.status = 'SENT';
-        } catch (mqttError) {
-          console.warn('[MQTT Warning] Failed to publish immediately to broker:', mqttError);
-        }
+          if (updateRes.rowCount && updateRes.rowCount > 0) {
+            command.status = 'SENT';
+          } else {
+            // Already ACKed or completed
+            const currentRes = await client.query(`SELECT status FROM device_commands WHERE id = $1;`, [command.id]);
+            if (currentRes.rowCount) command.status = currentRes.rows[0].status;
+          }
+        });
+      } catch (mqttError) {
+        console.warn('[MQTT Warning] Failed to publish immediately to broker:', mqttError);
+      }
 
-        return reply.status(201).send({ command });
-      });
+      return reply.status(201).send({ command });
     }
   );
 

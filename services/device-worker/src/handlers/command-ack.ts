@@ -20,30 +20,28 @@ export async function handleCommandAckMessage(
   const status = payload.status || 'ACKNOWLEDGED';
   const reason = payload.reason || null;
 
-  const client = await pool.connect();
   try {
+    let res;
     if (status === 'SUCCEEDED') {
-      await client.query(
-        `UPDATE device_commands SET status = 'SUCCEEDED', completed_at = now(), updated_at = now() WHERE id = $1;`,
+      res = await pool.query(
+        `UPDATE device_commands SET status = 'SUCCEEDED', acknowledged_at = COALESCE(acknowledged_at, now()), completed_at = now(), updated_at = now() WHERE id = $1;`,
         [commandId]
       );
     } else if (status === 'FAILED') {
-      await client.query(
-        `UPDATE device_commands SET status = 'FAILED', error_message = $2, completed_at = now(), updated_at = now() WHERE id = $1;`,
+      res = await pool.query(
+        `UPDATE device_commands SET status = 'FAILED', acknowledged_at = COALESCE(acknowledged_at, now()), error_message = $2, completed_at = now(), updated_at = now() WHERE id = $1;`,
         [commandId, reason]
       );
     } else {
-      await client.query(
+      res = await pool.query(
         `UPDATE device_commands SET status = 'ACKNOWLEDGED', acknowledged_at = now(), updated_at = now() WHERE id = $1;`,
         [commandId]
       );
     }
 
-    console.log(`[Command Ack Handler] Command ${commandId} updated to status: ${status}`);
+    console.log(`[Command Ack Handler] Command ${commandId} updated to status: ${status} (rows matched: ${res.rowCount})`);
   } catch (err) {
     console.error(`[Command Ack Handler] Error updating command ${commandId}:`, err);
-  } finally {
-    client.release();
   }
 }
 

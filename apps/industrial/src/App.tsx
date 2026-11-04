@@ -5,6 +5,8 @@ import { Header } from './components/Layout/Header';
 import { OverviewView } from './views/OverviewView';
 import { ScopeView } from './views/ScopeView';
 import { CommandsView } from './views/CommandsView';
+import { AlertsView } from './views/AlertsView';
+import { AlertBanner } from './components/Alerts/AlertBanner';
 import { MachinesTable } from './components/Machines/MachinesTable';
 import { useMachines } from './api/machines';
 import { useRealtimeTelemetry } from './hooks/useRealtimeTelemetry';
@@ -42,6 +44,9 @@ const IndustrialDashboard: React.FC = () => {
         {/* Top Header */}
         <Header />
 
+        {/* Global Incident / Alarm Toast Banner */}
+        <AlertBanner onNavigateToAlerts={() => setCurrentTab('alerts')} />
+
         {/* Scrollable Page Body */}
         <main className="flex-1 overflow-y-auto p-6 bg-grid-pattern">
           <div className="max-w-7xl mx-auto pb-12">
@@ -70,6 +75,8 @@ const IndustrialDashboard: React.FC = () => {
             )}
 
             {currentTab === 'commands' && <CommandsView />}
+
+            {currentTab === 'alerts' && <AlertsView />}
           </div>
         </main>
       </div>

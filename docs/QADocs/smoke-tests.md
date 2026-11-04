@@ -2,6 +2,9 @@
 
 This document provides step-by-step verification commands to smoke test the platform locally.
 
+> [!TIP]
+> To execute a full browser-based verification checklist before starting testing, see **[Mandatory Application Pre-Flight Checklist & QA Test Cases](file:///home/ketan/projects/Krisha/kiot-platform/docs/QADocs/mandatory-application-checklist.md)**.
+
 ---
 
 ## Smoke Test 1: Backing Containers Verification
@@ -239,6 +242,47 @@ pnpm --filter @kiot/device-worker exec tsx ../../scripts/test-e2e-pipeline.ts
      - Equipment Table lists `CNC-01` (Running) and `LATHE-02` (Stopped).
      - Clicking **"Control"** opens the actuator modal permitting spindle target modulation and Emergency E-Stop.
      - Switching to **"Telemetry Scope"** displays multi-channel real-time waveforms.
+
+---
+
+## Smoke Test 10: Virtual Edge Simulator & Bidirectional Command Loop
+
+Verify the interactive virtual device simulator (`services/device-simulator`):
+
+1. **Start the Virtual Device Simulator:**
+   ```bash
+   pnpm sim:device
+   ```
+
+2. **Verify Telemetry Ingestion:**
+   Observe the terminal logging outbound telemetry for `DEV-ESP32-001` and `DEV-METER-001` every 1,000ms.
+
+3. **Dispatch a Remote Actuator Command via REST API or UI:**
+   ```bash
+   curl -X POST http://localhost:3000/v1/devices/DEV-ESP32-001/commands \
+     -H "Content-Type: application/json" \
+     -H "X-KIOT-Organization-Id: 00000000-0000-4000-a000-000000000001" \
+     -d '{"commandType":"SET_SPEED","payload":{"rpm":4200}}'
+   ```
+
+4. **Verify Simulator Log:**
+   ```text
+   📥 [COMMAND RECEIVED] Device: DEV-ESP32-001 | Type: SET_SPEED | ID: <uuid>
+   📤 [ACK SENT] DEV-ESP32-001 -> Command #<uuid> (SUCCEEDED) - VFD Inverter set target to 4200 RPM
+   ```
+
+5. **Verify Database Status:**
+   ```bash
+   docker exec -it kiot-postgres-dev psql -U postgres -d kiot_dev -c "
+   SELECT id, device_id, command_type, status, completed_at FROM device_commands ORDER BY created_at DESC LIMIT 1;
+   "
+   ```
+   **Expected Status:** `SUCCEEDED`.
+
+6. **Interactive Fault Injection in Simulator Terminal:**
+   - Press **`3`** in the simulator terminal $\rightarrow$ Radial vibration spikes past 4.5 mm/s; observe the live ECharts streaming scope in the dashboard at `http://localhost:5173/` trigger a visual alarm.
+   - Press **`5`** $\rightarrow$ Emergency Stop halts spindle immediately (0 RPM).
+   - Press **`6`** $\rightarrow$ Faults reset, resuming nominal operations.
 
 
 

@@ -156,6 +156,9 @@ CREATE POLICY commands_insert ON device_commands
     app.get_org_role(organization_id) IN ('owner', 'admin', 'manager', 'operator')
   );
 
+CREATE POLICY commands_update ON device_commands
+  FOR UPDATE USING (app.is_org_member(organization_id));
+
 -- Industrial Machines
 CREATE POLICY machines_select ON industrial_machines
   FOR SELECT USING (app.is_org_member(organization_id));

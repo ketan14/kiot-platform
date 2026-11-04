@@ -2,6 +2,7 @@ import { TelemetryReading, ProductType } from '@kiot/shared-types';
 import { telemetryBuffer } from '../buffer.js';
 import { updateHotTelemetryCache, publishTelemetryEvent } from '../redis.js';
 import { updateDeviceHeartbeat } from '../db.js';
+import { alertEvaluator } from '../alerts/evaluator.js';
 
 export async function handleTelemetryMessage(
   topicParts: string[],
@@ -91,6 +92,16 @@ export async function handleTelemetryMessage(
     // Fan-out to Redis Pub/Sub for live frontend WebSocket dashboards
     void publishTelemetryEvent(organizationId, {
       type: 'TELEMETRY_UPDATE',
+      organizationId,
+      deviceId,
+      metric: item.metric,
+      value: item.value,
+      unit: item.unit,
+      timestamp: deviceTimestamp,
+    });
+
+    // Real-time threshold evaluation for alerts and incidents
+    void alertEvaluator.evaluateReading({
       organizationId,
       deviceId,
       metric: item.metric,

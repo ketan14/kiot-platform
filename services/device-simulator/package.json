@@ -1,0 +1,26 @@
+{
+  "name": "@kiot/device-simulator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "KIOT Interactive Physical Edge Device Simulator with Bidirectional MQTT & Command Execution",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@kiot/shared-types": "workspace:*",
+    "dotenv": "^16.4.7",
+    "mqtt": "^5.10.3",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@kiot/config": "workspace:*",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
+

@@ -103,11 +103,22 @@ pnpm dev:api
 
 # Run only the IoT Device Ingestion Worker
 pnpm dev:worker
+
+# Run the WebSocket Gateway (ws://localhost:3001)
+pnpm dev:ws
+
+# Run the Industrial Frontend Application (http://localhost:5173)
+pnpm dev:industrial
+
+# Run the Virtual Edge Device Simulator (Interactive Fleet)
+pnpm sim:device
 ```
 
 ### Key URLs:
+- **Frontend Dashboard:** `http://localhost:5173/`
 - **API Base URL:** `http://localhost:3000`
 - **Swagger UI Interactive Documentation:** `http://localhost:3000/docs`
+- **WebSocket Gateway:** `ws://localhost:3001`
 - **Health Check Endpoint:** `http://localhost:3000/health`
 
 ---
@@ -125,6 +136,9 @@ pnpm lint
 
 # Build all packages and services
 pnpm build
+
+# Automated QA Pre-Flight Suite
+pnpm qa:check
 ```
 
 ---
@@ -136,5 +150,7 @@ pnpm build
 - [REST API & Database Integration Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/api-and-database.md)
 - [IoT Device Ingestion Worker Pipeline](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/iot-ingestion-worker.md)
 - [Real-Time WebSocket Gateway](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/websocket-gateway.md)
+- [Virtual Edge Device Simulator](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/device-simulator.md)
+- [Automated Alerting & Incident Management Engine](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/alert-rules-and-incidents.md)
 - [Frontend Application (`apps/industrial`)](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/frontend-application.md)
 

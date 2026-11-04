@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useOrgStore } from '../stores/orgStore';
 import { useTelemetryStore } from '../stores/telemetryStore';
+import { useAlertStore } from '../stores/alertStore';
 
 export function useRealtimeTelemetry() {
   const currentOrgId = useOrgStore((s) => s.currentOrg.id);
@@ -68,6 +69,16 @@ export function useRealtimeTelemetry() {
               data.unit || '',
               data.timestamp || new Date().toISOString()
             );
+          }
+
+          // Incident triggered or resolved events
+          if (data.type === 'INCIDENT_TRIGGERED' && data.incident) {
+            useAlertStore.getState().setActiveAlarm(data.incident);
+          } else if (data.type === 'INCIDENT_RESOLVED') {
+            const currentAlarm = useAlertStore.getState().activeAlarm;
+            if (currentAlarm && currentAlarm.id === data.incidentId) {
+              useAlertStore.getState().clearAlarm();
+            }
           }
         } catch {
           // Ignore parse errors

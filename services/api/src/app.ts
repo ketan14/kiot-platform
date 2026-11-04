@@ -11,6 +11,7 @@ import { deviceRoutes } from './routes/devices.js';
 import { machineRoutes } from './routes/machines.js';
 import { commandRoutes } from './routes/commands.js';
 import { telemetryRoutes } from './routes/telemetry.js';
+import { alertRoutes } from './routes/alerts.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = fastify({
@@ -79,6 +80,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(machineRoutes);
   await app.register(commandRoutes);
   await app.register(telemetryRoutes);
+  await app.register(alertRoutes);
 
   return app;
 }

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "RBAC role definitions, permission matrix, and evaluation helpers for KIOT",
+  "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
