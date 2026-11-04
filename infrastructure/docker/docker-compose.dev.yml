@@ -1,0 +1,83 @@
+services:
+  # ============================================================================
+  # EMQX 5.x - Distributed MQTT Broker
+  # ============================================================================
+  emqx:
+    image: emqx/emqx:5.8.5
+    container_name: kiot-emqx-dev
+    restart: unless-stopped
+    ports:
+      - "1883:1883"     # MQTT Plaintext
+      - "8883:8883"     # MQTT over TLS
+      - "8083:8083"     # MQTT over WebSocket
+      - "8084:8084"     # MQTT over WSS
+      - "18083:18083"   # EMQX Web Dashboard
+    environment:
+      - EMQX_NODE_NAME=emqx@127.0.0.1
+      - EMQX_DASHBOARD__DEFAULT_USERNAME=admin
+      - EMQX_DASHBOARD__DEFAULT_PASSWORD=kiotadmin123
+      - EMQX_ALLOW_ANONYMOUS=true # Local dev only
+    volumes:
+      - emqx_data:/opt/emqx/data
+      - emqx_log:/opt/emqx/log
+    networks:
+      - kiot-network
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # PostgreSQL 16 with TimescaleDB Extension
+  # ============================================================================
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: kiot-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=kiot_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - kiot-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d kiot_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # Redis 7.x - Cache & Pub/Sub Backplane
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: kiot-redis-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    command: redis-server --appendonly no
+    volumes:
+      - redis_data:/data
+    networks:
+      - kiot-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  kiot-network:
+    driver: bridge
+
+volumes:
+  emqx_data:
+  emqx_log:
+  postgres_data:
+  redis_data:
+

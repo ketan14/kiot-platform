@@ -1,0 +1,26 @@
+{
+  "name": "kiot-platform",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.16.1",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "check-types": "turbo run check-types",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "docker:up": "./scripts/start-docker.sh",
+    "docker:down": "./scripts/stop-docker.sh",
+    "docker:logs": "docker compose -f infrastructure/docker/docker-compose.dev.yml logs -f",
+    "db:migrate": "./scripts/migrate-db.sh",
+    "db:seed": "./scripts/seed-db.sh",
+    "db:reset": "./scripts/migrate-db.sh --reset && ./scripts/seed-db.sh"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3",
+    "prettier": "^3.4.2"
+  }
+}
+
