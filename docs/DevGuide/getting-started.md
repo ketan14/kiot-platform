@@ -132,6 +132,9 @@ pnpm build
 ## 7. Additional Developer Documentation
 
 - [Monorepo & Shared Packages Architecture](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/monorepo-and-packages.md)
+- [`pnpm --filter` Guide for Testing & Execution](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/pnpm-filter-guide.md)
 - [REST API & Database Integration Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/api-and-database.md)
 - [IoT Device Ingestion Worker Pipeline](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/iot-ingestion-worker.md)
+- [Real-Time WebSocket Gateway](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/websocket-gateway.md)
+- [Frontend Application (`apps/industrial`)](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/frontend-application.md)
 

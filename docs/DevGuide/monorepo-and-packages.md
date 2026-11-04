@@ -92,3 +92,25 @@ Specify `"workspace:*"` in the consuming `package.json`:
 ```
 Then run `pnpm install` to link the packages automatically.
 
+---
+
+## 4. Targeted Execution with `pnpm --filter`
+
+For detailed guidance, syntax patterns, and testing examples, see the dedicated **[`pnpm --filter` Testing & Execution Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/pnpm-filter-guide.md)**.
+
+### Quick Reference:
+```bash
+# Run a script defined in a package's package.json
+pnpm --filter <package-name> <script>
+
+# Execute a binary (e.g. tsx, vitest) using that package's local node_modules
+pnpm --filter <package-name> exec <binary> <script-path>
+
+# Run type-checking for a single project
+pnpm --filter @kiot/industrial-app check-types
+
+# Run integration tests against a specific service
+pnpm --filter @kiot/websocket-gateway exec tsx ../../scripts/verify-websocket.ts
+```
+
+

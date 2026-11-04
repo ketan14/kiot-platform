@@ -35,3 +35,25 @@ Every API endpoint and worker must pass three automated security assertions:
 2. **Tenant Cross-Contamination Assertion:** A user attempting to query or modify data using an organization ID they do not belong to must fail with `403 Forbidden`.
 3. **PostgreSQL RLS Assertion:** Direct SQL queries executing within an active tenant transaction must never return rows belonging to another `organization_id`, even if query `WHERE` clauses are omitted.
 
+---
+
+## 3. Targeted Test Execution with `pnpm --filter`
+
+In our monorepo, tests are scoped to specific workspaces using the `--filter` (or `-F`) flag from the monorepo root:
+
+```bash
+# Run unit and integration tests inside a specific service
+pnpm --filter @kiot/api test
+pnpm --filter @kiot/validation test
+
+# Execute standalone verification suites using a package's runtime binaries (exec)
+pnpm --filter @kiot/websocket-gateway exec tsx ../../scripts/verify-websocket.ts
+pnpm --filter @kiot/device-worker exec tsx ../../scripts/test-e2e-pipeline.ts
+
+# Run tests across all services in parallel
+pnpm --filter "./services/*" test
+```
+
+For complete syntax and dependency graph operators (`...`), see the **[`pnpm --filter` Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/pnpm-filter-guide.md)**.
+
+
