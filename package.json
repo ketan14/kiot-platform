@@ -6,6 +6,8 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:api": "pnpm --filter @kiot/api dev",
+    "dev:worker": "pnpm --filter @kiot/device-worker dev",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
     "test": "turbo run test",
