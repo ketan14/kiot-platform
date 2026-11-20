@@ -25,9 +25,12 @@ export function useRealtimeTelemetry() {
 
     setStatus('CONNECTING');
 
-    // Use absolute URL or proxy
+    // Use unified proxy /ws or fallback to direct port 3001
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.hostname}:3001?org_id=${currentOrgId}&token=user_${userId}`;
+    const isDirectGateway = window.location.port === '3001';
+    const wsUrl = isDirectGateway
+      ? `${protocol}//${window.location.hostname}:3001?org_id=${currentOrgId}&token=user_${userId}`
+      : `${protocol}//${window.location.host}/ws?org_id=${currentOrgId}&token=user_${userId}`;
 
     try {
       const ws = new WebSocket(wsUrl);

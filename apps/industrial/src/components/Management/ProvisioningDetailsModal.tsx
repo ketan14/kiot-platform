@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Copy, Check, Radio, Cpu, Key, ShieldCheck } from 'lucide-react';
 import { Device } from '../../api/types';
 import { useOrgStore } from '../../stores/orgStore';
@@ -43,7 +44,7 @@ export const ProvisioningDetailsModal: React.FC<ProvisioningDetailsModalProps> =
     setTimeout(() => setCopiedField(null), 2000);
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
@@ -176,7 +177,8 @@ export const ProvisioningDetailsModal: React.FC<ProvisioningDetailsModalProps> =
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

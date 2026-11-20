@@ -22,9 +22,38 @@ const queryClient = new QueryClient({
   },
 });
 
+const getInitialTab = (): NavTab => {
+  if (typeof window === 'undefined') return 'overview';
+  const path = window.location.pathname.toLowerCase();
+  if (path.includes('device') || path.includes('management') || path.includes('admin')) return 'management';
+  if (path.includes('machine') || path.includes('cnc')) return 'machines';
+  if (path.includes('scope')) return 'scope';
+  if (path.includes('alert') || path.includes('incident')) return 'alerts';
+  if (path.includes('analytic') || path.includes('history')) return 'analytics';
+  if (path.includes('command') || path.includes('actuator')) return 'commands';
+  return 'overview';
+};
+
 const IndustrialDashboard: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<NavTab>('overview');
+  const [currentTab, setCurrentTab] = useState<NavTab>(getInitialTab);
   const [targetScopeDevice, setTargetScopeDevice] = useState<string>('DEV-ESP32-001');
+
+  // Sync URL changes with browser Back/Forward buttons
+  React.useEffect(() => {
+    const handlePopState = () => {
+      setCurrentTab(getInitialTab());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleSelectTab = (tab: NavTab) => {
+    setCurrentTab(tab);
+    const slug = tab === 'overview' ? '/' : `/${tab === 'management' ? 'devices' : tab}`;
+    if (window.location.pathname !== slug) {
+      window.history.pushState(null, '', slug);
+    }
+  };
 
   // Initialize background WebSocket real-time connection
   useRealtimeTelemetry();
@@ -33,13 +62,13 @@ const IndustrialDashboard: React.FC = () => {
 
   const handleOpenScopeForDevice = (deviceId: string) => {
     setTargetScopeDevice(deviceId);
-    setCurrentTab('scope');
+    handleSelectTab('scope');
   };
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
       {/* Fixed Left Sidebar */}
-      <Sidebar currentTab={currentTab} onSelectTab={setCurrentTab} />
+      <Sidebar currentTab={currentTab} onSelectTab={handleSelectTab} />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

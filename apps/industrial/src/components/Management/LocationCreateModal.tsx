@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, MapPin, Building2, Plus, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useCreateLocation, useLocations } from '../../api/management';
 
@@ -65,7 +66,7 @@ export const LocationCreateModal: React.FC<LocationCreateModalProps> = ({
     onClose();
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Modal Header */}
@@ -186,7 +187,8 @@ export const LocationCreateModal: React.FC<LocationCreateModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -145,7 +145,10 @@ pnpm qa:check
 
 ## 7. Additional Developer Documentation
 
+- [Unified Local Domain & Reverse Proxy Guide (`kiot.local:40000`)](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/unified-local-domain-and-proxy.md)
+- [Complete Device Onboarding & Multi-Portal Testing Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/device-onboarding-complete-guide.md)
 - [Local Database Inspection & Management Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/database-access.md)
+- [EMQX MQTT Broker & Management Dashboard Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/emqx-broker-and-dashboard.md)
 - [Monorepo & Shared Packages Architecture](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/monorepo-and-packages.md)
 - [`pnpm --filter` Guide for Testing & Execution](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/pnpm-filter-guide.md)
 - [REST API & Database Integration Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/api-and-database.md)

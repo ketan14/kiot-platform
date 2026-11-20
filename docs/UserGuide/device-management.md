@@ -9,12 +9,12 @@ This comprehensive guide provides a step-by-step walkthrough for onboarding new 
 The easiest way to register hardware is through the **Industrial Portal UI**.
 
 ### Step 1: Open the Device Portal
-1. Open your browser and navigate to:
+1. Open your browser and navigate directly to:
    ```
-   http://localhost:5173/
+   http://kiot.local:40000/devices
    ```
-2. In the left sidebar, click **"Device Portal & Admin"**.
-3. In the top-right corner of the portal, click the **"+ Onboard New Device"** button.
+   *(Or open `http://kiot.local:40000/` and click **"Device Portal & Admin"** in the left sidebar).*
+2. In the top-right corner of the portal, click the **"+ Onboard New Device"** button.
 
 ---
 
@@ -27,7 +27,7 @@ Fill out the physical specifications of your hardware:
   - `Energy & Power Metering`
   - `Cold Storage & HVAC`
   - `Home Automation`
-- **Hardware Architecture:** Select `ESP32 Dual-Core (FreeRTOS)`, `Linux Edge Gateway`, or `Third-Party Modbus / RS485`.
+- **Hardware Architecture:** Select `ESP32 Microcontroller (Dual-Core FreeRTOS)`, `Linux Edge Gateway / IPC`, or `Third-Party Modbus / RS485`.
 - **Hardware Serial Number:** Factory engraved serial (e.g., `SN-ESP32-992384`).
 - **Initial Firmware Version:** Defaults to `1.0.0` or enter your build version (e.g., `1.2.0`).
 
@@ -86,7 +86,7 @@ curl -s -X POST \
       "installedBy": "Automation Team"
     }
   }' \
-  "http://localhost:3000/v1/devices"
+  "http://kiot.local:40000/v1/devices"
 ```
 
 ### Step 2: Receive Confirmation & Provisioning Profile
@@ -162,6 +162,6 @@ docker exec -i kiot-emqx-dev emqx_ctl pub \
 - Click **"Credentials"** at any time to re-inspect or copy MQTT parameters.
 
 ### 2. In Adminer Database Browser
-- Open: `http://localhost:8085/?pgsql=postgres&username=postgres&db=kiot_dev`
+- Open: `http://kiot.local:40000/adminer/?pgsql=postgres&username=postgres&db=kiot_dev` *(Server: `postgres`, User/Pass: `postgres`)*
 - **Table `devices`:** Verify the row with `id = 'DEV-ESP32-003'` and its assigned `location_id`.
 - **Table `device_shadows`:** Verify the initialized shadow record (`version: 1`, `desired: {}`, `reported: {}`).

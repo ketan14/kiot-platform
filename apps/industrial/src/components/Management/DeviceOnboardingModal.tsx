@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Cpu,
@@ -110,7 +111,7 @@ export const DeviceOnboardingModal: React.FC<DeviceOnboardingModalProps> = ({
     onClose();
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
@@ -259,7 +260,7 @@ export const DeviceOnboardingModal: React.FC<DeviceOnboardingModalProps> = ({
                     onChange={(e: any) => setHardwareType(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"
                   >
-                    <option value="esp32">ESP32 Dual-Core (FreeRTOS)</option>
+                    <option value="esp32">ESP32 Microcontroller (Dual-Core FreeRTOS)</option>
                     <option value="linux_gateway">Linux Edge Gateway / IPC</option>
                     <option value="third_party">Third-Party Modbus / RS485</option>
                   </select>
@@ -556,7 +557,8 @@ export const DeviceOnboardingModal: React.FC<DeviceOnboardingModalProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

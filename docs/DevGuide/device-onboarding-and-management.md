@@ -1,5 +1,9 @@
 # Device Onboarding Wizard & Management Portal (Phase 7C)
 
+> [!TIP]
+> **Looking for the full multi-portal walkthrough & copy-paste test commands?**  
+> See the dedicated [Complete Device Onboarding & Multi-Portal Testing Guide](file:///home/ketan/projects/Krisha/kiot-platform/docs/DevGuide/device-onboarding-complete-guide.md) covering the unified `http://kiot.local:40000` gateway, sample device catalog, Swagger UI, Adminer, and EMQX inspection.
+
 The **KIOT Device Onboarding & Management Portal** provides end-to-end administration for multi-tenant IoT hardware fleets, hierarchical manufacturing plants, and team access control.
 
 ---
@@ -138,7 +142,7 @@ Hierarchical organizational structure:
 
 ## 3. UI Features (`apps/industrial`)
 
-Access via the left navigation bar under **"Device Portal & Admin"** (`http://localhost:5173/`):
+Access via the left navigation bar under **"Device Portal & Admin"** or directly at **`http://kiot.local:40000/devices`** *(unified gateway over Vite on `:5175`)*:
 
 1. **3-Step Device Onboarding Wizard:**
    - **Step 1: Hardware Identity**: Select Product Line, Hardware Type (ESP32, Linux Gateway, Modbus), Serial Number, and Firmware Version.
@@ -173,19 +177,19 @@ curl -s -X POST \
     "locationId": "00000000-0000-4000-e000-000000000003",
     "firmwareVersion": "1.2.0"
   }' \
-  "http://localhost:3000/v1/devices" | jq .
+  "http://kiot.local:40000/v1/devices" | jq .
 ```
 
 ### Test 2: Verify Hierarchy Tree
 ```bash
 curl -s -H "X-KIOT-Organization-Id: 00000000-0000-4000-a000-000000000001" \
-  "http://localhost:3000/v1/locations?tree=true" | jq .
+  "http://kiot.local:40000/v1/locations?tree=true" | jq .
 ```
 
 ### Test 3: Inspect in Adminer DB UI
 Open your browser to:
 ```
-http://localhost:8085/?pgsql=postgres&username=postgres&db=kiot_dev
+http://kiot.local:40000/adminer/?pgsql=postgres&username=postgres&db=kiot_dev
 ```
 - Inspect table `devices` $\rightarrow$ verify newly registered device.
 - Inspect table `device_shadows` $\rightarrow$ verify initial shadow record (`desired: {}`, `reported: {}`, `version: 1`).

@@ -11,8 +11,16 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
+    port: 5175,
     host: '0.0.0.0',
+    // Allow LAN access from mobile/tablets & kiot.local without Host header rejections
+    allowedHosts: true,
+    hmr: {
+      // Connect HMR websocket via reverse proxy port (e.g. 40000) when proxied
+      clientPort: process.env.VITE_HMR_CLIENT_PORT
+        ? Number(process.env.VITE_HMR_CLIENT_PORT)
+        : undefined,
+    },
     proxy: {
       '/v1': {
         target: 'http://localhost:3000',
