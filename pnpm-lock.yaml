@@ -176,14 +176,87 @@ importers:
         specifier: ^5.6.3
         version: 5.9.3
 
-  apps/industrial:
+  apps/customer-admin:
     dependencies:
+      '@kiot/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
       '@kiot/permissions':
         specifier: workspace:*
         version: link:../../packages/permissions
       '@kiot/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
+      '@kiot/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@kiot/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
+      '@tanstack/react-query':
+        specifier: ^5.62.11
+        version: 5.105.3(@types/react@19.3.0)(react@19.3.1)
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: ^0.469.0
+        version: 0.469.0(react@19.3.1)
+      react:
+        specifier: ^19.0.0
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.1(react@19.3.1)
+      tailwind-merge:
+        specifier: ^2.6.0
+        version: 2.6.1
+      zustand:
+        specifier: ^5.0.3
+        version: 5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))
+    devDependencies:
+      '@kiot/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.3.4(vite@6.4.5(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.20.5
+      '@types/react':
+        specifier: ^19.0.2
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.0.2
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitejs/plugin-react':
+        specifier: ^4.3.4
+        version: 4.7.0(vite@6.4.5(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.1))
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.3.4
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.7
+        version: 6.4.5(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  apps/industrial:
+    dependencies:
+      '@kiot/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@kiot/permissions':
+        specifier: workspace:*
+        version: link:../../packages/permissions
+      '@kiot/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
+      '@kiot/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@kiot/validation':
         specifier: workspace:*
         version: link:../../packages/validation
@@ -249,7 +322,102 @@ importers:
         specifier: ^6.0.7
         version: 6.4.5(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  apps/platform-admin:
+    dependencies:
+      '@kiot/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@kiot/permissions':
+        specifier: workspace:*
+        version: link:../../packages/permissions
+      '@kiot/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
+      '@kiot/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@kiot/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
+      '@tanstack/react-query':
+        specifier: ^5.62.11
+        version: 5.105.3(@types/react@19.3.0)(react@19.3.1)
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: ^0.469.0
+        version: 0.469.0(react@19.3.1)
+      react:
+        specifier: ^19.0.0
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.1(react@19.3.1)
+      tailwind-merge:
+        specifier: ^2.6.0
+        version: 2.6.1
+      zustand:
+        specifier: ^5.0.3
+        version: 5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))
+    devDependencies:
+      '@kiot/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.3.4(vite@6.4.5(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.20.5
+      '@types/react':
+        specifier: ^19.0.2
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.0.2
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitejs/plugin-react':
+        specifier: ^4.3.4
+        version: 4.7.0(vite@6.4.5(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.1))
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.3.4
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.7
+        version: 6.4.5(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/api-client:
+    dependencies:
+      '@kiot/permissions':
+        specifier: workspace:*
+        version: link:../permissions
+      '@kiot/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+    devDependencies:
+      '@kiot/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
   packages/config: {}
+
+  packages/logging:
+    devDependencies:
+      '@kiot/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.20.5
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
 
   packages/permissions:
     devDependencies:
@@ -268,6 +436,37 @@ importers:
       '@kiot/config':
         specifier: workspace:*
         version: link:../config
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
+  packages/ui:
+    dependencies:
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: ^0.469.0
+        version: 0.469.0(react@19.3.1)
+      react:
+        specifier: ^19.0.0
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.1(react@19.3.1)
+      tailwind-merge:
+        specifier: ^2.6.0
+        version: 2.6.1
+    devDependencies:
+      '@kiot/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/react':
+        specifier: ^19.0.2
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.0.2
+        version: 19.3.0(@types/react@19.3.0)
       typescript:
         specifier: ^5.6.3
         version: 5.9.3

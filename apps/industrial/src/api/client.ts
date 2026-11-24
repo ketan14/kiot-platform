@@ -8,7 +8,8 @@ export interface RequestOptions extends RequestInit {
 
 export async function apiFetch<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { params, headers, ...customConfig } = options;
-  const currentOrgId = useOrgStore.getState().currentOrg.id;
+  const { currentOrg, accessToken, logout } = useOrgStore.getState();
+  const currentOrgId = currentOrg.id;
 
   let url = `${BASE_URL}${endpoint}`;
   if (params) {
@@ -24,16 +25,25 @@ export async function apiFetch<T>(endpoint: string, options: RequestOptions = {}
     }
   }
 
+  const authHeaders: Record<string, string> = {};
+  if (accessToken) {
+    authHeaders['Authorization'] = `Bearer ${accessToken}`;
+  }
+
   const response = await fetch(url, {
     ...customConfig,
     headers: {
       'Content-Type': 'application/json',
       'X-KIOT-Organization-Id': currentOrgId,
+      ...authHeaders,
       ...headers,
     },
   });
 
   if (!response.ok) {
+    if (response.status === 401 && !endpoint.includes('/v1/auth/')) {
+      logout();
+    }
     let errorDetail = 'API request failed';
     try {
       const errJson = await response.json();

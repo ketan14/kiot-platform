@@ -38,6 +38,11 @@ import { ProvisioningDetailsModal } from '../components/Management/ProvisioningD
 
 export const ManagementView: React.FC = () => {
   const currentOrg = useOrgStore((s) => s.currentOrg);
+  const userRole = useOrgStore((s) => s.userRole);
+  const canCreateDevices = useOrgStore((s) => s.can('devices:create'));
+  const canDeleteDevices = useOrgStore((s) => s.can('devices:delete'));
+  const canManageLocations = useOrgStore((s) => s.can('locations:manage'));
+  const canManageMembers = useOrgStore((s) => s.can('members:manage'));
   const [activeTab, setActiveTab] = useState<'fleet' | 'hierarchy' | 'team'>('fleet');
 
   // Modal controls
@@ -135,20 +140,24 @@ export const ManagementView: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => openAddSubLocation(node.id)}
-              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition flex items-center space-x-1"
-            >
-              <Plus className="w-3.5 h-3.5 text-slate-400" />
-              <span>Add Child</span>
-            </button>
-            <button
-              onClick={() => handleDeleteLocation(node.id, node.name)}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition"
-              title="Delete Location"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {canManageLocations && (
+              <>
+                <button
+                  onClick={() => openAddSubLocation(node.id)}
+                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition flex items-center space-x-1"
+                >
+                  <Plus className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Add Child</span>
+                </button>
+                <button
+                  onClick={() => handleDeleteLocation(node.id, node.name)}
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition"
+                  title="Delete Location"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -182,13 +191,19 @@ export const ManagementView: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-3 shrink-0">
-          <button
-            onClick={() => setIsOnboardModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 flex items-center space-x-2 transition"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Onboard New Device</span>
-          </button>
+          {canCreateDevices ? (
+            <button
+              onClick={() => setIsOnboardModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 flex items-center space-x-2 transition"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Onboard New Device</span>
+            </button>
+          ) : (
+            <span className="px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-slate-400 font-mono">
+              Role: <strong className="text-amber-400 uppercase">{userRole}</strong> (Read-Only Registry)
+            </span>
+          )}
         </div>
       </div>
 
@@ -415,13 +430,15 @@ export const ManagementView: React.FC = () => {
                               <Key className="w-3.5 h-3.5 text-amber-400" />
                               <span>Credentials</span>
                             </button>
-                            <button
-                              onClick={() => handleDeleteDevice(device.id)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition"
-                              title="Decommission Device"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {canDeleteDevices && (
+                              <button
+                                onClick={() => handleDeleteDevice(device.id)}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition"
+                                title="Decommission Device"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -444,16 +461,18 @@ export const ManagementView: React.FC = () => {
                 Hierarchical plant organization: Site $\rightarrow$ Building $\rightarrow$ Production Line $\rightarrow$ Workcell.
               </p>
             </div>
-            <button
-              onClick={() => {
-                setLocationParentId(null);
-                setIsLocationModalOpen(true);
-              }}
-              className="px-3.5 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center space-x-1.5 transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Root Site</span>
-            </button>
+            {canManageLocations && (
+              <button
+                onClick={() => {
+                  setLocationParentId(null);
+                  setIsLocationModalOpen(true);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center space-x-1.5 transition"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Root Site</span>
+              </button>
+            )}
           </div>
 
           <div className="p-6 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-4">
@@ -486,13 +505,15 @@ export const ManagementView: React.FC = () => {
                 Enforce granular role-based permissions (Owner, Admin, Manager, Operator, Viewer).
               </p>
             </div>
-            <button
-              onClick={() => setIsInviteModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 flex items-center space-x-1.5 transition"
-            >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span>Invite Team Member</span>
-            </button>
+            {canManageMembers && (
+              <button
+                onClick={() => setIsInviteModalOpen(true)}
+                className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 flex items-center space-x-1.5 transition"
+              >
+                <Plus className="w-4 h-4 stroke-[2.5]" />
+                <span>Invite Team Member</span>
+              </button>
+            )}
           </div>
 
           <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
@@ -562,7 +583,7 @@ export const ManagementView: React.FC = () => {
                         </td>
 
                         <td className="py-3.5 px-4 text-right">
-                          {member.role !== 'owner' && (
+                          {canManageMembers && member.role !== 'owner' && (
                             <button
                               onClick={() => handleRemoveMember(member.user_id, member.email)}
                               className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition"

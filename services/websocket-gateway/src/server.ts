@@ -7,6 +7,30 @@ import { redisSubscriber } from './redis.js';
 
 const DEMO_USER_ID = '00000000-0000-4000-b000-000000000001';
 
+function extractUserIdFromToken(token: string | undefined): string {
+  if (!token) return DEMO_USER_ID;
+  const clean = token.replace(/^Bearer\s+/i, '').trim();
+  if (!clean) return DEMO_USER_ID;
+  if (clean.startsWith('user_')) {
+    return clean.replace('user_', '');
+  }
+  // Decode JWT payload (sub claim)
+  const parts = clean.split('.');
+  if (parts.length === 3 && parts[1]) {
+    try {
+      let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4 !== 0) b64 += '=';
+      const claims = JSON.parse(Buffer.from(b64, 'base64').toString('utf8')) as { sub?: string; exp?: number };
+      if (claims.sub && (!claims.exp || claims.exp >= Math.floor(Date.now() / 1000))) {
+        return claims.sub;
+      }
+    } catch {
+      // fallback below
+    }
+  }
+  return DEMO_USER_ID;
+}
+
 const server = http.createServer((req, res) => {
   if (req.url === '/health' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -41,11 +65,8 @@ server.on('upgrade', async (request, socket, head) => {
       return;
     }
 
-    // 2. Resolve User
-    let userId = DEMO_USER_ID;
-    if (token && token.startsWith('user_')) {
-      userId = token.replace('user_', '');
-    }
+    // 2. Resolve User from JWT or user_<id> token
+    const userId = extractUserIdFromToken(token);
 
     // 3. Verify Membership in Organization
     const { isValid, role } = await verifyUserOrganizationMembership(userId, orgId);

@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { requireTenantContext } from '../middleware/tenant.js';
+import { requireTenantContext, requirePermission } from '../middleware/tenant.js';
 import { withTenantClient } from '../plugins/db.js';
 import { createAlertRuleSchema, updateAlertRuleSchema } from '@kiot/validation';
 
@@ -66,7 +66,7 @@ export async function alertRoutes(app: FastifyInstance): Promise<void> {
   app.post(
     '/v1/alert-rules',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('alerts:manage')],
       schema: {
         description: 'Create a new threshold alert rule',
         tags: ['Alerts & Incidents'],
@@ -132,7 +132,7 @@ export async function alertRoutes(app: FastifyInstance): Promise<void> {
   app.delete(
     '/v1/alert-rules/:id',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('alerts:manage')],
       schema: {
         description: 'Delete an alert rule',
         tags: ['Alerts & Incidents'],
@@ -237,7 +237,7 @@ export async function alertRoutes(app: FastifyInstance): Promise<void> {
   app.post(
     '/v1/incidents/:id/acknowledge',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('alerts:manage')],
       schema: {
         description: 'Acknowledge an active incident',
         tags: ['Alerts & Incidents'],
@@ -280,7 +280,7 @@ export async function alertRoutes(app: FastifyInstance): Promise<void> {
   app.post(
     '/v1/incidents/:id/resolve',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('alerts:manage')],
       schema: {
         description: 'Resolve an incident',
         tags: ['Alerts & Incidents'],

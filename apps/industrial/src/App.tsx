@@ -8,10 +8,13 @@ import { CommandsView } from './views/CommandsView';
 import { AlertsView } from './views/AlertsView';
 import { AnalyticsView } from './views/AnalyticsView';
 import { ManagementView } from './views/ManagementView';
+import { LoginView } from './views/LoginView';
 import { AlertBanner } from './components/Alerts/AlertBanner';
 import { MachinesTable } from './components/Machines/MachinesTable';
 import { useMachines } from './api/machines';
 import { useRealtimeTelemetry } from './hooks/useRealtimeTelemetry';
+import { useOrgStore } from './stores/orgStore';
+import { PortalSwitcherBar } from '@kiot/ui';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,9 +69,11 @@ const IndustrialDashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
-      {/* Fixed Left Sidebar */}
-      <Sidebar currentTab={currentTab} onSelectTab={handleSelectTab} />
+    <div className="flex flex-col h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
+      <PortalSwitcherBar activePortal="industrial" />
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        {/* Fixed Left Sidebar */}
+        <Sidebar currentTab={currentTab} onSelectTab={handleSelectTab} />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -115,14 +120,17 @@ const IndustrialDashboard: React.FC = () => {
           </div>
         </main>
       </div>
+      </div>
     </div>
   );
 };
 
 export const App: React.FC = () => {
+  const isAuthenticated = useOrgStore((s) => s.isAuthenticated);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <IndustrialDashboard />
+      {isAuthenticated ? <IndustrialDashboard /> : <LoginView />}
     </QueryClientProvider>
   );
 };

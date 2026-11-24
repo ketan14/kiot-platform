@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
-import { requireTenantContext } from '../middleware/tenant.js';
+import { requireTenantContext, requirePermission, DEMO_USER_ID } from '../middleware/tenant.js';
 import { withTenantClient, pool } from '../plugins/db.js';
+import { resolveUserIdFromToken } from '../plugins/jwt.js';
 import { inviteMemberSchema } from '@kiot/validation';
 
 export async function organizationRoutes(app: FastifyInstance): Promise<void> {
@@ -19,14 +20,17 @@ export async function organizationRoutes(app: FastifyInstance): Promise<void> {
         },
       },
     },
-    async (request) => {
-      // Default demo user for dev testing
-      const userId = '00000000-0000-4000-b000-000000000001';
+    async (request, reply) => {
+      const { userId } = resolveUserIdFromToken(request.headers.authorization, DEMO_USER_ID);
+      if (!userId) {
+        return reply.status(401).send({ statusCode: 401, error: 'Unauthorized' });
+      }
       const query = `
         SELECT o.id, o.name, o.slug, o.logo_url, m.role, m.status, o.created_at
         FROM organizations o
         JOIN organization_memberships m ON o.id = m.organization_id
-        WHERE m.user_id = $1 AND o.is_active = true;
+        WHERE m.user_id = $1 AND o.is_active = true
+        ORDER BY m.created_at ASC;
       `;
       const result = await pool.query(query, [userId]);
       return { organizations: result.rows };
@@ -117,7 +121,7 @@ export async function organizationRoutes(app: FastifyInstance): Promise<void> {
   app.post(
     '/v1/organizations/:id/members',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('members:manage')],
       schema: {
         description: 'Invite or add a team member to the organization with assigned RBAC role',
         tags: ['Organizations'],
@@ -197,7 +201,7 @@ export async function organizationRoutes(app: FastifyInstance): Promise<void> {
   app.delete(
     '/v1/organizations/:id/members/:userId',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('members:manage')],
       schema: {
         description: 'Remove a team member from the organization',
         tags: ['Organizations'],

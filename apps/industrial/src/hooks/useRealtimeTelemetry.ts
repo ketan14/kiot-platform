@@ -6,6 +6,7 @@ import { useAlertStore } from '../stores/alertStore';
 export function useRealtimeTelemetry() {
   const currentOrgId = useOrgStore((s) => s.currentOrg.id);
   const userId = useOrgStore((s) => s.userId);
+  const accessToken = useOrgStore((s) => s.accessToken);
   const setStatus = useTelemetryStore((s) => s.setStatus);
   const setLatency = useTelemetryStore((s) => s.setLatency);
   const recordReading = useTelemetryStore((s) => s.recordReading);
@@ -28,9 +29,10 @@ export function useRealtimeTelemetry() {
     // Use unified proxy /ws or fallback to direct port 3001
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const isDirectGateway = window.location.port === '3001';
+    const wsToken = encodeURIComponent(accessToken || `user_${userId}`);
     const wsUrl = isDirectGateway
-      ? `${protocol}//${window.location.hostname}:3001?org_id=${currentOrgId}&token=user_${userId}`
-      : `${protocol}//${window.location.host}/ws?org_id=${currentOrgId}&token=user_${userId}`;
+      ? `${protocol}//${window.location.hostname}:3001?org_id=${currentOrgId}&token=${wsToken}`
+      : `${protocol}//${window.location.host}/ws?org_id=${currentOrgId}&token=${wsToken}`;
 
     try {
       const ws = new WebSocket(wsUrl);
@@ -104,7 +106,7 @@ export function useRealtimeTelemetry() {
     } catch {
       setStatus('ERROR');
     }
-  }, [currentOrgId, userId, setStatus, setLatency, recordReading]);
+  }, [currentOrgId, userId, accessToken, setStatus, setLatency, recordReading]);
 
   useEffect(() => {
     connect();

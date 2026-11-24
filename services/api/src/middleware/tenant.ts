@@ -1,6 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { pool } from '../plugins/db.js';
 import { OrganizationRole } from '@kiot/shared-types';
+import { Permission, hasPermission, ROLE_PERMISSIONS } from '@kiot/permissions';
+import { resolveUserIdFromToken } from '../plugins/jwt.js';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -8,12 +10,13 @@ declare module 'fastify' {
       userId: string;
       organizationId: string;
       role: OrganizationRole;
+      permissions: Permission[];
     };
   }
 }
 
-// Fallback demo user for local development testing
-const DEMO_USER_ID = '00000000-0000-4000-b000-000000000001';
+// Fallback demo user for local development testing & CLI scripts
+export const DEMO_USER_ID = '00000000-0000-4000-b000-000000000001';
 
 export async function requireTenantContext(
   request: FastifyRequest,
@@ -30,14 +33,21 @@ export async function requireTenantContext(
     });
   }
 
-  // Resolve user identity from Bearer token or development fallback
-  let userId = DEMO_USER_ID;
-  const authHeader = request.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.substring(7);
-    if (token.startsWith('user_')) {
-      userId = token.replace('user_', '');
-    }
+  // Resolve user identity from Bearer JWT token, `user_<uuid>`, or development fallback
+  const { userId, isExplicitToken } = resolveUserIdFromToken(
+    request.headers.authorization,
+    DEMO_USER_ID
+  );
+
+  if (!userId) {
+    return reply.status(401).send({
+      statusCode: 401,
+      error: 'Unauthorized',
+      code: 'INVALID_OR_EXPIRED_TOKEN',
+      message: isExplicitToken
+        ? 'Your session token is invalid or has expired. Please sign in again.'
+        : 'Authentication required.',
+    });
   }
 
   // Validate that user is an active member of this organization
@@ -57,10 +67,39 @@ export async function requireTenantContext(
     });
   }
 
+  const role = result.rows[0].role as OrganizationRole;
+
   request.tenant = {
     userId,
     organizationId: orgHeader,
-    role: result.rows[0].role as OrganizationRole,
+    role,
+    permissions: ROLE_PERMISSIONS[role] || [],
   };
 }
+
+/**
+ * Fastify preHandler factory that enforces a granular RBAC permission
+ */
+export function requirePermission(permission: Permission) {
+  return async function (request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const tenant = request.tenant;
+    if (!tenant) {
+      return reply.status(401).send({
+        statusCode: 401,
+        error: 'Unauthorized',
+        message: 'Tenant context not initialized.',
+      });
+    }
+
+    if (!hasPermission(tenant.role, permission)) {
+      return reply.status(403).send({
+        statusCode: 403,
+        error: 'Forbidden',
+        code: 'RBAC_PERMISSION_DENIED',
+        message: `Your role (${tenant.role.toUpperCase()}) does not have permission '${permission}' to perform this action.`,
+      });
+    }
+  };
+}
+
 

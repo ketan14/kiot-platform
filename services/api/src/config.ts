@@ -10,6 +10,8 @@ const envSchema = z.object({
   EMQX_HOST: z.string().default('localhost'),
   EMQX_PORT: z.coerce.number().default(1883),
   CORS_ORIGIN: z.string().default('*'),
+  JWT_SECRET: z.string().default('kiot-platform-dev-jwt-secret-key-2026'),
+  JWT_EXPIRES_IN_SECONDS: z.coerce.number().default(86400),
 });
 
 export type Config = z.infer<typeof envSchema>;
@@ -23,5 +25,7 @@ export const config: Config = envSchema.parse({
   EMQX_HOST: process.env.EMQX_HOST,
   EMQX_PORT: process.env.EMQX_PORT,
   CORS_ORIGIN: process.env.CORS_ORIGIN,
+  JWT_SECRET: process.env.JWT_SECRET,
+  JWT_EXPIRES_IN_SECONDS: process.env.JWT_EXPIRES_IN_SECONDS,
 });
 

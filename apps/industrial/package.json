@@ -10,8 +10,10 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@kiot/api-client": "workspace:*",
     "@kiot/permissions": "workspace:*",
     "@kiot/shared-types": "workspace:*",
+    "@kiot/ui": "workspace:*",
     "@kiot/validation": "workspace:*",
     "@tanstack/react-query": "^5.62.11",
     "@tanstack/react-router": "^1.92.1",

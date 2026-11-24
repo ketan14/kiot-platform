@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { requireTenantContext } from '../middleware/tenant.js';
+import { requireTenantContext, requirePermission } from '../middleware/tenant.js';
 import { withTenantClient } from '../plugins/db.js';
 import { publishDeviceCommand } from '../plugins/mqtt.js';
 
@@ -8,7 +8,7 @@ export async function commandRoutes(app: FastifyInstance): Promise<void> {
   app.post(
     '/v1/devices/:id/commands',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('commands:write')],
       schema: {
         description: 'Dispatch a control command to a device via REST and MQTT',
         tags: ['Device Commands'],

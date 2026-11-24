@@ -16,9 +16,11 @@ import {
   useResolveIncident,
 } from '../api/alerts';
 import { Incident, IncidentStatus } from '@kiot/shared-types';
+import { useOrgStore } from '../stores/orgStore';
 
 export const AlertsView: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const canManageAlerts = useOrgStore((s) => s.can('alerts:manage'));
 
   const { data: incidents, isLoading: isLoadingIncidents, refetch: refetchIncidents } = useIncidents();
   const { data: rules, isLoading: isLoadingRules } = useAlertRules();
@@ -249,7 +251,7 @@ export const AlertsView: React.FC = () => {
 
                       {/* Action */}
                       <td className="py-3.5 px-4 whitespace-nowrap text-right">
-                        {isOpen && (
+                        {isOpen && canManageAlerts && (
                           <button
                             onClick={() => handleAcknowledge(incident.id)}
                             disabled={acknowledgeMutation.isPending}
@@ -258,7 +260,7 @@ export const AlertsView: React.FC = () => {
                             Acknowledge
                           </button>
                         )}
-                        {isAck && (
+                        {isAck && canManageAlerts && (
                           <button
                             onClick={() => handleResolve(incident.id)}
                             disabled={resolveMutation.isPending}
@@ -266,6 +268,9 @@ export const AlertsView: React.FC = () => {
                           >
                             Resolve
                           </button>
+                        )}
+                        {!isResolved && !canManageAlerts && (
+                          <span className="text-slate-500 text-[11px] font-mono">Read-Only</span>
                         )}
                         {isResolved && (
                           <span className="text-emerald-400 text-xs font-medium flex items-center justify-end space-x-1">

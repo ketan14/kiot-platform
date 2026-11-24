@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { requireTenantContext } from '../middleware/tenant.js';
+import { requireTenantContext, requirePermission } from '../middleware/tenant.js';
 import { withTenantClient } from '../plugins/db.js';
 import { createDeviceSchema, updateDeviceSchema } from '@kiot/validation';
 import { config } from '../config.js';
@@ -133,7 +133,7 @@ export async function deviceRoutes(app: FastifyInstance): Promise<void> {
   app.post(
     '/v1/devices',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('devices:create')],
       schema: {
         description: 'Onboard a new IoT device, provision initial shadow and generate MQTT endpoints',
         tags: ['Devices'],
@@ -256,7 +256,7 @@ export async function deviceRoutes(app: FastifyInstance): Promise<void> {
   app.put(
     '/v1/devices/:id',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('devices:update')],
       schema: {
         description: 'Update device metadata, location, gateway assignment, or operational status',
         tags: ['Devices'],
@@ -337,7 +337,7 @@ export async function deviceRoutes(app: FastifyInstance): Promise<void> {
   app.delete(
     '/v1/devices/:id',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('devices:delete')],
       schema: {
         description: 'Decommission and deregister an IoT device',
         tags: ['Devices'],

@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { requireTenantContext } from '../middleware/tenant.js';
+import { requireTenantContext, requirePermission } from '../middleware/tenant.js';
 import { withTenantClient } from '../plugins/db.js';
 import { createLocationSchema, updateLocationSchema } from '@kiot/validation';
 
@@ -165,7 +165,7 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
   app.post(
     '/v1/locations',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('locations:manage')],
       schema: {
         description: 'Create a new site, building, floor, line, or room location node',
         tags: ['Locations'],
@@ -226,7 +226,7 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
   app.put(
     '/v1/locations/:id',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('locations:manage')],
       schema: {
         description: 'Update location name, code, type, address or parent hierarchy',
         tags: ['Locations'],
@@ -312,7 +312,7 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
   app.delete(
     '/v1/locations/:id',
     {
-      preHandler: [requireTenantContext],
+      preHandler: [requireTenantContext, requirePermission('locations:manage')],
       schema: {
         description: 'Delete a location node (children cascade deleted, assigned hardware unlinked)',
         tags: ['Locations'],

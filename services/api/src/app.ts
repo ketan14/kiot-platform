@@ -6,6 +6,7 @@ import swaggerUi from '@fastify/swagger-ui';
 import { config } from './config.js';
 
 import { healthRoutes } from './routes/health.js';
+import { authRoutes } from './routes/auth.js';
 import { organizationRoutes } from './routes/organizations.js';
 import { deviceRoutes } from './routes/devices.js';
 import { machineRoutes } from './routes/machines.js';
@@ -13,6 +14,7 @@ import { commandRoutes } from './routes/commands.js';
 import { telemetryRoutes } from './routes/telemetry.js';
 import { alertRoutes } from './routes/alerts.js';
 import { locationRoutes } from './routes/locations.js';
+import { platformRoutes } from './routes/platform.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = fastify({
@@ -76,6 +78,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Register Core Routes
   await app.register(healthRoutes);
+  await app.register(authRoutes);
   await app.register(organizationRoutes);
   await app.register(deviceRoutes);
   await app.register(machineRoutes);
@@ -83,6 +86,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(telemetryRoutes);
   await app.register(alertRoutes);
   await app.register(locationRoutes);
+  await app.register(platformRoutes);
 
   return app;
 }

@@ -13,11 +13,16 @@ import {
 import { useSendCommand, useDeviceCommands } from '../api/commands';
 import { useMachines } from '../api/machines';
 import { formatTimestamp } from '../lib/utils';
+import { useOrgStore } from '../stores/orgStore';
 
 export const CommandsView: React.FC = () => {
   const [selectedDevice, setSelectedDevice] = useState<string>('DEV-ESP32-001');
   const [speedTarget, setSpeedTarget] = useState<number>(3200);
   const [notice, setNotice] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const canWriteCommands = useOrgStore((s) => s.can('commands:write'));
+  const userRole = useOrgStore((s) => s.userRole);
 
   const { data: machines } = useMachines();
   const { data: commands, isLoading: isLoadingCommands } = useDeviceCommands(selectedDevice);
@@ -26,6 +31,7 @@ export const CommandsView: React.FC = () => {
   const commandList = Array.isArray(commands) ? commands : [];
 
   const handleSendCommand = (type: string, payload: Record<string, unknown>) => {
+    setErrorMsg(null);
     sendCommand(
       {
         deviceId: selectedDevice,
@@ -36,6 +42,9 @@ export const CommandsView: React.FC = () => {
         onSuccess: (cmd) => {
           setNotice(`Dispatched ${type} successfully (ID: ${cmd.id.slice(0, 8)})`);
           setTimeout(() => setNotice(null), 4000);
+        },
+        onError: (err) => {
+          setErrorMsg(err instanceof Error ? err.message : 'Failed to dispatch command');
         },
       }
     );
@@ -74,6 +83,22 @@ export const CommandsView: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {!canWriteCommands && (
+        <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center space-x-2.5 font-medium">
+          <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400" />
+          <span>
+            Read-Only Mode: Your current RBAC role (<strong className="uppercase">{userRole}</strong>) does not have <code className="px-1 py-0.5 rounded bg-slate-900">commands:write</code> permission to actuate physical machinery.
+          </span>
+        </div>
+      )}
+
+      {errorMsg && (
+        <div className="p-3 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2 font-medium">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
 
       {notice && (
         <div className="p-3 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center space-x-2 font-medium">
@@ -121,9 +146,9 @@ export const CommandsView: React.FC = () => {
           </div>
 
           <button
-            disabled={isPending}
+            disabled={isPending || !canWriteCommands}
             onClick={() => handleSendCommand('SET_SPEED', { rpm: speedTarget })}
-            className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center space-x-2 transition-colors disabled:opacity-50"
+            className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-3.5 h-3.5" />
             <span>Apply Target RPM</span>
@@ -141,9 +166,9 @@ export const CommandsView: React.FC = () => {
 
           <div className="space-y-2">
             <button
-              disabled={isPending}
+              disabled={isPending || !canWriteCommands}
               onClick={() => handleSendCommand('SET_RELAY', { relay: 'coolant_pump', state: 'ON' })}
-              className="w-full py-2 px-3 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-200 text-xs font-semibold flex items-center justify-between border border-slate-700/60"
+              className="w-full py-2 px-3 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-200 text-xs font-semibold flex items-center justify-between border border-slate-700/60 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="flex items-center space-x-2">
                 <Power className="w-3.5 h-3.5 text-emerald-400" />
@@ -153,9 +178,9 @@ export const CommandsView: React.FC = () => {
             </button>
 
             <button
-              disabled={isPending}
+              disabled={isPending || !canWriteCommands}
               onClick={() => handleSendCommand('SET_RELAY', { relay: 'chip_conveyor', state: 'ON' })}
-              className="w-full py-2 px-3 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-200 text-xs font-semibold flex items-center justify-between border border-slate-700/60"
+              className="w-full py-2 px-3 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-200 text-xs font-semibold flex items-center justify-between border border-slate-700/60 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="flex items-center space-x-2">
                 <Power className="w-3.5 h-3.5 text-cyan-400" />
@@ -166,9 +191,9 @@ export const CommandsView: React.FC = () => {
           </div>
 
           <button
-            disabled={isPending}
+            disabled={isPending || !canWriteCommands}
             onClick={() => handleSendCommand('RESET_FAULT', { clear_flags: true })}
-            className="w-full py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center space-x-2 transition-colors border border-slate-700"
+            className="w-full py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center space-x-2 transition-colors border border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset Controller Faults</span>
@@ -194,14 +219,14 @@ export const CommandsView: React.FC = () => {
           </div>
 
           <button
-            disabled={isPending}
+            disabled={isPending || !canWriteCommands}
             onClick={() =>
               handleSendCommand('EMERGENCY_STOP', {
                 reason: 'HMI manual emergency override',
                 priority: 'CRITICAL',
               })
             }
-            className="w-full py-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-sm shadow-xl shadow-rose-600/30 flex items-center justify-center space-x-2 transition-all active:scale-[0.98]"
+            className="w-full py-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-sm shadow-xl shadow-rose-600/30 flex items-center justify-center space-x-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <AlertTriangle className="w-4 h-4" />
             <span>EXECUTE EMERGENCY STOP</span>

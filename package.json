@@ -10,6 +10,8 @@
     "dev:worker": "pnpm --filter @kiot/device-worker dev",
     "dev:ws": "pnpm --filter @kiot/websocket-gateway dev",
     "dev:industrial": "pnpm --filter @kiot/industrial-app dev",
+    "dev:customer-admin": "pnpm --filter @kiot/customer-admin-app dev",
+    "dev:platform-admin": "pnpm --filter @kiot/platform-admin-app dev",
     "dev:simulator": "pnpm --filter @kiot/device-simulator dev",
     "sim:device": "pnpm --filter @kiot/device-simulator start",
     "sim:telemetry": "pnpm --filter @kiot/device-worker exec tsx ../../scripts/simulate-industrial-telemetry.ts",
