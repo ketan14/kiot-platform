@@ -27,6 +27,9 @@ import {
   useDeleteLocation,
   useOrgMembers,
   useRemoveMember,
+  useGateways,
+  useCreateGateway,
+  useDeleteGateway,
   LocationItem,
 } from '../api/management';
 import { useOrgStore } from '../stores/orgStore';
@@ -43,7 +46,13 @@ export const ManagementView: React.FC = () => {
   const canDeleteDevices = useOrgStore((s) => s.can('devices:delete'));
   const canManageLocations = useOrgStore((s) => s.can('locations:manage'));
   const canManageMembers = useOrgStore((s) => s.can('members:manage'));
-  const [activeTab, setActiveTab] = useState<'fleet' | 'hierarchy' | 'team'>('fleet');
+  const [activeTab, setActiveTab] = useState<'fleet' | 'gateways' | 'hierarchy' | 'team'>('fleet');
+
+  // New Gateway Form
+  const [newGwId, setNewGwId] = useState('');
+  const [newGwName, setNewGwName] = useState('');
+  const [newGwModel, setNewGwModel] = useState('Moxa UC-8100 Linux Edge Gateway');
+  const [newGwIp, setNewGwIp] = useState('192.168.1.105');
 
   // Modal controls
   const [isOnboardModalOpen, setIsOnboardModalOpen] = useState(false);
@@ -57,11 +66,14 @@ export const ManagementView: React.FC = () => {
   const { data: flatLocations } = useLocations(false);
   const { data: treeLocations, isLoading: isLoadingLocations } = useLocations(true);
   const { data: members, isLoading: isLoadingMembers } = useOrgMembers();
+  const { data: gateways } = useGateways();
 
   // Mutations
   const deleteDeviceMutation = useDeleteDevice();
   const deleteLocationMutation = useDeleteLocation();
   const removeMemberMutation = useRemoveMember();
+  const createGatewayMutation = useCreateGateway();
+  const deleteGatewayMutation = useDeleteGateway();
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -267,6 +279,18 @@ export const ManagementView: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setActiveTab('gateways')}
+          className={`pb-3 flex items-center space-x-2 transition border-b-2 ${
+            activeTab === 'gateways'
+              ? 'border-amber-400 text-amber-300'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Radio className="w-4 h-4" />
+          <span>Edge Gateways & Modbus Bridges ({gateways?.length || 0})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('hierarchy')}
           className={`pb-3 flex items-center space-x-2 transition border-b-2 ${
             activeTab === 'hierarchy'
@@ -451,7 +475,131 @@ export const ManagementView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: TOPOLOGICAL HIERARCHY */}
+      {/* TAB 2: EDGE GATEWAYS & MODBUS BRIDGES */}
+      {activeTab === 'gateways' && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-base font-bold text-white">
+              Linux Industrial Edge Gateways & Modbus RTU/TCP Bridges
+            </h3>
+            <p className="text-xs text-slate-400">
+              Ruggedized edge gateways running <code>@kiot/gateway-agent</code> with local Store-and-Forward offline ring buffering and Modbus RS-485/TCP polling.
+            </p>
+          </div>
+
+          {canCreateDevices && (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!newGwId || !newGwName) return;
+                await createGatewayMutation.mutateAsync({
+                  id: newGwId,
+                  name: newGwName,
+                  model: newGwModel,
+                  ipAddress: newGwIp,
+                });
+                setNewGwId('');
+                setNewGwName('');
+              }}
+              className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 grid grid-cols-1 sm:grid-cols-5 gap-3"
+            >
+              <input
+                type="text"
+                required
+                placeholder="Gateway ID (e.g. GW-PUN-002)"
+                value={newGwId}
+                onChange={(e) => setNewGwId(e.target.value)}
+                className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white font-mono"
+              />
+              <input
+                type="text"
+                required
+                placeholder="Gateway Name (e.g. Line 2 Modbus Bridge)"
+                value={newGwName}
+                onChange={(e) => setNewGwName(e.target.value)}
+                className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white"
+              />
+              <input
+                type="text"
+                placeholder="Hardware Model"
+                value={newGwModel}
+                onChange={(e) => setNewGwModel(e.target.value)}
+                className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white"
+              />
+              <input
+                type="text"
+                placeholder="LAN IP Address"
+                value={newGwIp}
+                onChange={(e) => setNewGwIp(e.target.value)}
+                className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white font-mono"
+              />
+              <button
+                type="submit"
+                disabled={createGatewayMutation.isPending}
+                className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center space-x-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Register Gateway</span>
+              </button>
+            </form>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {gateways?.map((gw) => (
+              <div
+                key={gw.id}
+                className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between space-y-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <Radio className="w-4 h-4 text-amber-400" />
+                      <span className="font-mono font-black text-base text-white">{gw.id}</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase">
+                        {gw.status}
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-200 mt-1">{gw.name}</h4>
+                    <p className="text-xs text-slate-400">{gw.model}</p>
+                  </div>
+
+                  {canDeleteDevices && gw.id !== 'GW-PUN-001' && (
+                    <button
+                      onClick={() => void deleteGatewayMutation.mutateAsync(gw.id)}
+                      className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 grid grid-cols-3 gap-2 text-xs font-mono">
+                  <div>
+                    <span className="text-slate-500 block text-[10px]">LAN IP</span>
+                    <span className="text-slate-200 font-bold">{gw.ip_address || '192.168.1.100'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block text-[10px]">MODBUS NODES</span>
+                    <span className="text-amber-400 font-bold">
+                      {gw.child_device_count || 0} Slaves
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block text-[10px]">LAST HEARTBEAT</span>
+                    <span className="text-emerald-400 font-bold">
+                      {gw.last_heartbeat_at
+                        ? new Date(gw.last_heartbeat_at).toLocaleTimeString()
+                        : 'Active'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: TOPOLOGICAL HIERARCHY */}
       {activeTab === 'hierarchy' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">

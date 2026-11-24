@@ -8,6 +8,8 @@
     "dev": "turbo run dev",
     "dev:api": "pnpm --filter @kiot/api dev",
     "dev:worker": "pnpm --filter @kiot/device-worker dev",
+    "dev:notify": "pnpm --filter @kiot/notification-worker dev",
+    "dev:gateway": "pnpm --filter @kiot/gateway-agent dev",
     "dev:ws": "pnpm --filter @kiot/websocket-gateway dev",
     "dev:industrial": "pnpm --filter @kiot/industrial-app dev",
     "dev:customer-admin": "pnpm --filter @kiot/customer-admin-app dev",

@@ -8,9 +8,12 @@ export interface Gateway {
   name: string;
   model: string;
   ip_address?: string;
+  mac_address?: string;
   status: string;
   last_heartbeat_at?: string;
   location_id?: string;
+  location_name?: string;
+  child_device_count?: string | number;
   created_at: string;
 }
 
@@ -160,7 +163,44 @@ export function useGateways() {
       const res = await apiFetch<{ gateways: Gateway[] }>('/v1/gateways');
       return res.gateways || [];
     },
-    staleTime: 30000,
+    refetchInterval: 8000,
+  });
+}
+
+export function useCreateGateway() {
+  const queryClient = useQueryClient();
+  const currentOrgId = useOrgStore((s) => s.currentOrg.id);
+
+  return useMutation({
+    mutationFn: (data: {
+      id: string;
+      name: string;
+      model?: string;
+      ipAddress?: string;
+      locationId?: string | null;
+    }) =>
+      apiFetch<{ gateway: Gateway }>('/v1/gateways', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gateways', currentOrgId] });
+    },
+  });
+}
+
+export function useDeleteGateway() {
+  const queryClient = useQueryClient();
+  const currentOrgId = useOrgStore((s) => s.currentOrg.id);
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch(`/v1/gateways/${id}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gateways', currentOrgId] });
+    },
   });
 }
 

@@ -3,6 +3,7 @@ import { config } from './config.js';
 import { handleTelemetryMessage } from './handlers/telemetry.js';
 import { handleStateMessage } from './handlers/state.js';
 import { handleCommandAckMessage } from './handlers/command-ack.js';
+import { handleGatewayHeartbeatMessage } from './handlers/gateway-heartbeat.js';
 import { alertEvaluator } from './alerts/evaluator.js';
 import { telemetryBuffer } from './buffer.js';
 import { pool } from './db.js';
@@ -35,6 +36,7 @@ const SHARED_TOPICS = [
   '$share/ingestion_group/kiot/+/devices/+/telemetry',
   '$share/ingestion_group/kiot/+/devices/+/state',
   '$share/ingestion_group/kiot/+/devices/+/commands/+/ack',
+  '$share/ingestion_group/kiot/+/gateways/+/heartbeat',
 ];
 
 client.on('connect', async () => {
@@ -58,7 +60,13 @@ client.on('message', (topic: string, message: Buffer) => {
   // kiot/{org}/devices/{device}/state (parts length: 5)
   // kiot/{org}/devices/{device}/commands/{cmdId}/ack (parts length: 7)
 
+  const resourceType = parts[2];
   const action = parts[4];
+
+  if (resourceType === 'gateways' && action === 'heartbeat') {
+    void handleGatewayHeartbeatMessage(parts, message);
+    return;
+  }
 
   if (action === 'telemetry') {
     void handleTelemetryMessage(parts, message);

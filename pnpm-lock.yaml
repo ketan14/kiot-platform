@@ -389,6 +389,37 @@ importers:
         specifier: ^6.0.7
         version: 6.4.5(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  edge/gateway-agent:
+    dependencies:
+      '@kiot/logging':
+        specifier: workspace:*
+        version: link:../../packages/logging
+      '@kiot/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.6.1
+      mqtt:
+        specifier: ^5.10.3
+        version: 5.16.1
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
+    devDependencies:
+      '@kiot/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.20.5
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.15
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
   packages/api-client:
     dependencies:
       '@kiot/permissions':
@@ -593,6 +624,43 @@ importers:
       mqtt:
         specifier: ^5.10.3
         version: 5.16.1
+      pg:
+        specifier: ^8.13.1
+        version: 8.23.1
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
+    devDependencies:
+      '@kiot/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.20.5
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.23.1
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.15
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
+  services/notification-worker:
+    dependencies:
+      '@kiot/logging':
+        specifier: workspace:*
+        version: link:../../packages/logging
+      '@kiot/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.6.1
+      ioredis:
+        specifier: ^5.4.2
+        version: 5.11.1
       pg:
         specifier: ^8.13.1
         version: 8.23.1

@@ -375,7 +375,7 @@ export async function deviceRoutes(app: FastifyInstance): Promise<void> {
     {
       preHandler: [requireTenantContext],
       schema: {
-        description: 'List edge gateways registered in the organization',
+        description: 'List edge gateways registered in the organization with child device counts',
         tags: ['Devices'],
       },
     },
@@ -383,13 +383,93 @@ export async function deviceRoutes(app: FastifyInstance): Promise<void> {
       const tenant = request.tenant!;
       return withTenantClient(tenant.userId, tenant.organizationId, async (client) => {
         const query = `
-          SELECT id, name, model, ip_address, status, last_heartbeat_at, location_id, created_at
-          FROM gateways
-          WHERE organization_id = $1
-          ORDER BY created_at DESC;
+          SELECT g.id, g.name, g.model, g.ip_address, g.mac_address, g.status,
+                 g.last_heartbeat_at, g.location_id, l.name AS location_name, g.created_at,
+                 (SELECT count(*) FROM devices d WHERE d.gateway_id = g.id AND d.organization_id = g.organization_id) AS child_device_count
+          FROM gateways g
+          LEFT JOIN locations l ON g.location_id = l.id
+          WHERE g.organization_id = $1
+          ORDER BY g.created_at DESC;
         `;
         const result = await client.query(query, [tenant.organizationId]);
         return { gateways: result.rows };
+      });
+    }
+  );
+
+  // Register a new Industrial Edge Gateway
+  app.post(
+    '/v1/gateways',
+    {
+      preHandler: [requireTenantContext, requirePermission('devices:create')],
+      schema: {
+        description: 'Register a new Linux Industrial Edge Gateway (Modbus RTU/TCP bridge)',
+        tags: ['Devices'],
+      },
+    },
+    async (request, reply) => {
+      const tenant = request.tenant!;
+      const body = request.body as {
+        id: string;
+        name: string;
+        model?: string;
+        ipAddress?: string;
+        macAddress?: string;
+        locationId?: string | null;
+      };
+
+      if (!body.id || !body.name) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Gateway ID and name are required.',
+        });
+      }
+
+      return withTenantClient(tenant.userId, tenant.organizationId, async (client) => {
+        const result = await client.query(
+          `INSERT INTO gateways (
+             id, organization_id, location_id, name, model, ip_address, mac_address, status, last_heartbeat_at
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'online', NOW())
+           RETURNING *;`,
+          [
+            body.id.trim().toUpperCase(),
+            tenant.organizationId,
+            body.locationId || null,
+            body.name.trim(),
+            body.model?.trim() || 'Moxa UC-8100 Linux Edge Gateway',
+            body.ipAddress?.trim() || '192.168.1.100',
+            body.macAddress?.trim() || null,
+          ]
+        );
+        return reply.status(201).send({ gateway: result.rows[0] });
+      });
+    }
+  );
+
+  // Delete an Industrial Edge Gateway
+  app.delete(
+    '/v1/gateways/:id',
+    {
+      preHandler: [requireTenantContext, requirePermission('devices:delete')],
+      schema: {
+        description: 'Decommission an industrial edge gateway',
+        tags: ['Devices'],
+      },
+    },
+    async (request, reply) => {
+      const tenant = request.tenant!;
+      const { id } = request.params as { id: string };
+
+      return withTenantClient(tenant.userId, tenant.organizationId, async (client) => {
+        const result = await client.query(
+          `DELETE FROM gateways WHERE id = $1 AND organization_id = $2 RETURNING id;`,
+          [id, tenant.organizationId]
+        );
+        if (result.rowCount === 0) {
+          return reply.status(404).send({ error: 'Gateway not found' });
+        }
+        return { success: true };
       });
     }
   );
