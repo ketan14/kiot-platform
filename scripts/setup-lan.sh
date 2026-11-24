@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # KIOT Platform - WSL2 to Windows LAN Portproxy & Hosts Configuration Trigger
-# Triggers the Windows PowerShell setup script with Administrator privileges
+# Copies the PS1 script to Windows local Temp (avoiding \\wsl.localhost UNC
+# access errors in elevated RunAs sessions) and runs it as Administrator.
 # ==============================================================================
 set -euo pipefail
 
@@ -13,9 +14,13 @@ if ! command -v powershell.exe >/dev/null 2>&1; then
   exit 1
 fi
 
-WIN_PATH="$(wslpath -w "$PS_SCRIPT")"
-echo "Invoking Windows PowerShell setup script: $WIN_PATH"
+WSL_IP="$(hostname -I | awk '{print $1}')"
+WIN_TEMP_WSL="/mnt/c/Users/vaghe/AppData/Local/Temp/kiot-setup-lan-portproxy.ps1"
+WIN_TEMP_PATH='C:\Users\vaghe\AppData\Local\Temp\kiot-setup-lan-portproxy.ps1'
 
-# Run PowerShell as Administrator to configure netsh portproxy and Windows hosts
-powershell.exe -ExecutionPolicy Bypass -Command "Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -NoExit -File \"$WIN_PATH\"'"
-echo "✅ Windows Administrator prompt launched to configure hosts file and LAN port forwarding."
+cp "$PS_SCRIPT" "$WIN_TEMP_WSL"
+echo "Copied setup script to Windows Temp: $WIN_TEMP_PATH (WSL IP: $WSL_IP)"
+
+# Run PowerShell as Administrator from local C:\ path
+powershell.exe -ExecutionPolicy Bypass -Command "Start-Process powershell -Verb RunAs -Wait -ArgumentList '-ExecutionPolicy Bypass -File \"$WIN_TEMP_PATH\" -WslIp \"$WSL_IP\"'"
+echo "✅ Windows LAN port forwarding & Firewall setup completed!"
