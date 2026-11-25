@@ -59,8 +59,8 @@ if ($hostsContent -notmatch 'kiot\.local') {
     Write-Host "[OK] 'kiot.local' is already configured in Windows hosts file." -ForegroundColor Green
 }
 
-# 3. Ports to forward (40000: Gateway, 18083: EMQX Dashboard, 1883: MQTT, 5175: Vite Direct)
-$ports = @(40000, 18083, 1883, 5175)
+# 3. Ports to forward (40000: Gateway, 18083: EMQX Dashboard, 1883: MQTT, 5174-5179: All 6 KIOT Web Portals)
+$ports = @(40000, 18083, 1883, 5174, 5175, 5176, 5177, 5178, 5179)
 
 Write-Host "`n--- Configuring Windows Port Forwarding (netsh) ---" -ForegroundColor Yellow
 foreach ($port in $ports) {
@@ -79,7 +79,12 @@ $fwRules = @(
     @{ Name = "KIOT Platform Gateway (LAN 40000)"; Port = 40000 },
     @{ Name = "KIOT EMQX Dashboard (LAN 18083)"; Port = 18083 },
     @{ Name = "KIOT EMQX MQTT (LAN 1883)"; Port = 1883 },
-    @{ Name = "KIOT Vite Dev (LAN 5175)"; Port = 5175 }
+    @{ Name = "KIOT Customer Admin (LAN 5174)"; Port = 5174 },
+    @{ Name = "KIOT Industrial Dev (LAN 5175)"; Port = 5175 },
+    @{ Name = "KIOT Platform Admin (LAN 5176)"; Port = 5176 },
+    @{ Name = "KIOT Cold Portal (LAN 5177)"; Port = 5177 },
+    @{ Name = "KIOT Energy Portal (LAN 5178)"; Port = 5178 },
+    @{ Name = "KIOT Home Portal (LAN 5179)"; Port = 5179 }
 )
 foreach ($rule in $fwRules) {
     Remove-NetFirewallRule -DisplayName $rule.Name -ErrorAction SilentlyContinue | Out-Null

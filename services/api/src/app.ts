@@ -16,6 +16,7 @@ import { alertRoutes } from './routes/alerts.js';
 import { locationRoutes } from './routes/locations.js';
 import { platformRoutes } from './routes/platform.js';
 import { notificationRoutes } from './routes/notifications.js';
+import { productDomainRoutes } from './routes/product-domains.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = fastify({
@@ -89,6 +90,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(locationRoutes);
   await app.register(platformRoutes);
   await app.register(notificationRoutes);
+  await app.register(productDomainRoutes);
 
   return app;
 }

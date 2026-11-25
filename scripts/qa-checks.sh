@@ -189,23 +189,46 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# 5. Frontend Dashboard & Proxy Health
+# 5. Frontend Dashboards & Unified Gateway Proxy Health (All 6 Portals)
 # ------------------------------------------------------------------------------
-echo -e "\n${BOLD}▶ [5/6] Checking Frontend Development Application...${RESET}"
+echo -e "\n${BOLD}▶ [5/6] Checking Frontend Web Portals & Unified Gateway...${RESET}"
 
-FRONTEND_HTML=$(curl -s -m 3 http://localhost:5173/ 2>/dev/null || echo "")
+FRONTEND_HTML=$(curl -s -m 3 http://localhost:5175/ 2>/dev/null || echo "")
 if [[ "${FRONTEND_HTML}" == *"KIOT Industrial"* ]]; then
-  check_pass "Vite Frontend Application running (http://localhost:5173/)"
+  check_pass "KIOT Industrial Portal running (http://localhost:5175/)"
 else
-  check_fail "Frontend Dashboard is not serving on port 5173" "Run: pnpm dev:industrial"
+  check_fail "KIOT Industrial Portal is not serving on port 5175" "Run: pnpm dev"
 fi
 
+GATEWAY_HTML=$(curl -s -m 3 http://localhost:40000/ 2>/dev/null || echo "")
+if [[ "${GATEWAY_HTML}" == *"KIOT Industrial"* ]]; then
+  check_pass "Nginx Unified Platform Gateway active (http://kiot.local:40000/)"
+else
+  check_warn "Unified Gateway on port 40000 did not return Industrial HTML" "Ensure kiot-proxy-dev container and Vite (5175) are running"
+fi
+
+for portal_entry in \
+  "5174:KIOT Customer Admin" \
+  "5176:KIOT Platform Admin" \
+  "5177:KIOT Cold" \
+  "5178:KIOT Energy" \
+  "5179:KIOT Home"; do
+  PORT_NUM="${portal_entry%%:*}"
+  PORTAL_NAME="${portal_entry#*:}"
+  P_HTML=$(curl -s -m 3 "http://localhost:${PORT_NUM}/" 2>/dev/null || echo "")
+  if [[ "${P_HTML}" == *"${PORTAL_NAME}"* ]]; then
+    check_pass "${PORTAL_NAME} Portal running (http://localhost:${PORT_NUM}/)"
+  else
+    check_warn "${PORTAL_NAME} Portal is not serving on port ${PORT_NUM} (Run: pnpm dev)"
+  fi
+done
+
 # Check Vite Proxy to backend (/v1/machines)
-PROXY_TEST=$(curl -s -m 3 -H "X-KIOT-Organization-Id: 00000000-0000-4000-a000-000000000001" http://localhost:5173/v1/machines 2>/dev/null || echo "")
+PROXY_TEST=$(curl -s -m 3 -H "X-KIOT-Organization-Id: 00000000-0000-4000-a000-000000000001" http://localhost:5175/v1/machines 2>/dev/null || echo "")
 if [[ "${PROXY_TEST}" == *"\"machines\""* ]]; then
   check_pass "Frontend Vite Reverse Proxy to Backend API working (/v1/machines)"
 else
-  check_warn "Vite proxy test to /v1/machines did not return expected JSON" "Ensure API (3000) and Frontend (5173) are both running"
+  check_warn "Vite proxy test to /v1/machines did not return expected JSON" "Ensure API (3000) and Frontend (5175) are both running"
 fi
 
 # ------------------------------------------------------------------------------
@@ -238,7 +261,7 @@ echo -e "${BOLD}${CYAN}=========================================================
 if [[ "${FAILURES}" -eq 0 ]]; then
   echo -e "\n${GREEN}${BOLD}🎉 ALL MANDATORY QA CHECKS PASSED!${RESET}"
   echo -e "   The application environment is fully certified for browser testing."
-  echo -e "   ${BOLD}👉 Open Dashboard:${RESET} ${CYAN}http://localhost:5173/${RESET}\n"
+  echo -e "   ${BOLD}👉 Open Unified Gateway:${RESET} ${CYAN}http://kiot.local:40000/${RESET}\n"
   exit 0
 else
   echo -e "\n${RED}${BOLD}❌ ${FAILURES} MANDATORY QA CHECK(S) FAILED!${RESET}"

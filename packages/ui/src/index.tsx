@@ -1,13 +1,28 @@
 import React from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { Radio, Shield, Building2, Cpu, ExternalLink } from 'lucide-react';
+import {
+  Radio,
+  Shield,
+  Building2,
+  Cpu,
+  Snowflake,
+  Zap,
+  Home,
+  ExternalLink,
+} from 'lucide-react';
 
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-export type PortalId = 'industrial' | 'customer-admin' | 'platform-admin';
+export type PortalId =
+  | 'industrial'
+  | 'cold'
+  | 'energy'
+  | 'home'
+  | 'customer-admin'
+  | 'platform-admin';
 
 export interface PortalLinkItem {
   id: PortalId;
@@ -26,6 +41,30 @@ export const KIOT_PORTALS: PortalLinkItem[] = [
     devPort: 5175,
     proxyPath: '/',
     accentColor: 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+  },
+  {
+    id: 'cold',
+    name: 'KIOT Cold',
+    subtitle: 'Cold-Chain & HACCP Compliance',
+    devPort: 5177,
+    proxyPath: '/cold/',
+    accentColor: 'text-sky-400 bg-sky-500/15 border-sky-500/30',
+  },
+  {
+    id: 'energy',
+    name: 'KIOT Energy',
+    subtitle: '3-Phase Grid & Tariff Analytics',
+    devPort: 5178,
+    proxyPath: '/energy/',
+    accentColor: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+  },
+  {
+    id: 'home',
+    name: 'KIOT Home',
+    subtitle: 'Smart Relays & Automation Scenes',
+    devPort: 5179,
+    proxyPath: '/home/',
+    accentColor: 'text-indigo-400 bg-indigo-500/15 border-indigo-500/30',
   },
   {
     id: 'customer-admin',
@@ -48,7 +87,6 @@ export const KIOT_PORTALS: PortalLinkItem[] = [
 export function resolvePortalUrl(portal: PortalLinkItem): string {
   if (typeof window === 'undefined') return portal.proxyPath;
   const { protocol, hostname } = window.location;
-  // Direct connection to the dedicated Vite dev port for each portal
   return `${protocol}//${hostname}:${portal.devPort}/`;
 }
 
@@ -58,23 +96,29 @@ export interface PortalSwitcherBarProps {
 
 export const PortalSwitcherBar: React.FC<PortalSwitcherBarProps> = ({ activePortal }) => {
   return (
-    <div className="bg-slate-950 border-b border-slate-800/80 px-6 py-1.5 flex items-center justify-between text-xs select-none z-40">
-      <div className="flex items-center space-x-2">
+    <div className="bg-slate-950 border-b border-slate-800/80 px-4 sm:px-6 py-1.5 flex items-center justify-between text-xs select-none z-40 overflow-x-auto">
+      <div className="flex items-center space-x-2 shrink-0 mr-4">
         <Radio className="w-3.5 h-3.5 text-amber-400" />
         <span className="font-bold text-slate-300 tracking-wide text-[11px] uppercase">
-          KIOT Multi-Portal Suite
+          KIOT Multi-Product Suite
         </span>
       </div>
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-1.5 shrink-0">
         {KIOT_PORTALS.map((portal) => {
           const isCurrent = portal.id === activePortal;
           const Icon =
             portal.id === 'industrial'
               ? Cpu
-              : portal.id === 'customer-admin'
-                ? Building2
-                : Shield;
+              : portal.id === 'cold'
+                ? Snowflake
+                : portal.id === 'energy'
+                  ? Zap
+                  : portal.id === 'home'
+                    ? Home
+                    : portal.id === 'customer-admin'
+                      ? Building2
+                      : Shield;
 
           return (
             <a

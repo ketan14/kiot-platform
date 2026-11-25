@@ -1,0 +1,30 @@
+# ==============================================================================
+# KIOT Platform – Prometheus Observability Scrape Configuration
+# File: infrastructure/monitoring/prometheus.yml
+# ==============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    platform: 'kiot-platform'
+    environment: 'production'
+
+scrape_configs:
+  # 1. KIOT Modular Monolith REST API
+  - job_name: 'kiot-rest-api'
+    metrics_path: '/health'
+    static_configs:
+      - targets: ['host.docker.internal:3000']
+
+  # 2. KIOT Real-Time WebSocket Gateway
+  - job_name: 'kiot-websocket-gateway'
+    metrics_path: '/health'
+    static_configs:
+      - targets: ['host.docker.internal:3001']
+
+  # 3. EMQX 5.x Distributed MQTT BrokerPrometheus Exporter
+  - job_name: 'kiot-emqx-broker'
+    metrics_path: '/api/v5/prometheus/stats'
+    static_configs:
+      - targets: ['emqx:18083']

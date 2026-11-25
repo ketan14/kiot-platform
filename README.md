@@ -91,24 +91,37 @@ pnpm db:migrate
 pnpm db:seed
 ```
 
-### 3. Start Backend Services
-In separate terminal panes (or run concurrently via Turborepo):
+### 3. Start All Platform Applications & Backend Microservices
+Launch all 6 web portals and 5 backend daemons concurrently via Turborepo:
 ```bash
-# Fastify REST API & Swagger UI (http://localhost:3000/docs)
-pnpm dev:api
-
-# Dedicated Real-Time WebSocket Gateway (ws://localhost:3001)
-pnpm dev:ws
-
-# High-Throughput IoT Ingestion Worker (EMQX Shared Subscriptions -> TimescaleDB)
-pnpm dev:worker
+pnpm dev
 ```
 
-### 4. Start Industrial Dashboard (React 19 + Vite)
+Or run individual services/portals:
 ```bash
-pnpm dev:industrial
+# Backend Microservices
+pnpm dev:api              # Fastify REST API & Swagger UI (http://localhost:3000/docs)
+pnpm dev:ws               # Real-Time WebSocket Gateway (ws://localhost:3001)
+pnpm dev:worker           # High-Throughput MQTT Ingestion Worker (EMQX -> TimescaleDB)
+pnpm dev:notify           # Multi-Channel Notification & Escalation Worker (Email/Webhook/Slack)
+pnpm dev:gateway          # Industrial Edge Gateway Agent (Modbus RTU/TCP + Store-and-Forward)
+
+# Web Portals (React 19 + Vite)
+pnpm dev:industrial       # KIOT Industrial Portal (http://kiot.local:40000 / http://localhost:5175)
+pnpm dev:cold             # KIOT Cold Storage & HACCP Portal (http://localhost:5177)
+pnpm dev:energy           # KIOT Energy & 3-Phase Tariff Portal (http://localhost:5178)
+pnpm dev:home             # KIOT Smart Home & Automation Scenes Portal (http://localhost:5179)
+pnpm dev:customer-admin   # Tenant Customer Admin & Billing Portal (http://localhost:5174)
+pnpm dev:platform-admin   # Global KIOT Platform Admin & OTA Firmware Portal (http://localhost:5176)
 ```
-Navigate to **`http://localhost:5173/`** to view the live dashboard.
+
+### 4. Pre-Seeded RBAC Demo Accounts (Password: `kiot12345`)
+| Role | Email | User Name | Capabilities |
+|---|---|---|---|
+| **OWNER / SUPER ADMIN** | `admin@apex.kiot.io` | Rajesh Sharma | Full multi-org switcher, team RBAC, device provisioning, commands, billing |
+| **MANAGER** | `manager@apex.kiot.io` | Priya Nair | Device onboarding, location hierarchy, alert rules, actuator commands |
+| **OPERATOR** | `operator@apex.kiot.io` | Amit Patel | Dispatch machine commands, acknowledge/resolve incidents |
+| **VIEWER** | `viewer@apex.kiot.io` | Vikram Desai | Read-only live telemetry scope & historical analytics |
 
 ### 5. Stream Simulated Industrial Telemetry
 ```bash

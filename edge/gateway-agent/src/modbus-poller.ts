@@ -80,6 +80,67 @@ export const MODBUS_REGISTER_MAP: ModbusSlaveRegister[] = [
     scaleFactor: 0.01,
     simulateValue: (tick) => Number((0.96 + Math.sin(tick * 0.1) * 0.02).toFixed(3)),
   },
+
+  // Slave 3: Deep Blast Freezer Chamber A Sensor (KIOT Cold)
+  {
+    slaveId: 3,
+    deviceId: 'DEV-COLD-001',
+    productId: 'cold',
+    protocol: 'MODBUS_RTU_RS485',
+    registerAddress: 30101,
+    metric: 'chamber_temp_c',
+    unit: '°C',
+    scaleFactor: 0.1,
+    simulateValue: (tick) => Number((-20.0 + Math.sin(tick * 0.2) * 0.8).toFixed(2)),
+  },
+  {
+    slaveId: 3,
+    deviceId: 'DEV-COLD-001',
+    productId: 'cold',
+    protocol: 'MODBUS_RTU_RS485',
+    registerAddress: 30102,
+    metric: 'humidity_pct',
+    unit: '%',
+    scaleFactor: 0.1,
+    simulateValue: (tick) => Number((61.5 + Math.cos(tick * 0.15) * 1.4).toFixed(1)),
+  },
+
+  // Slave 4: GDP Biopharma Cold Room B Sensor (KIOT Cold)
+  {
+    slaveId: 4,
+    deviceId: 'DEV-COLD-002',
+    productId: 'cold',
+    protocol: 'MODBUS_RTU_RS485',
+    registerAddress: 30201,
+    metric: 'chamber_temp_c',
+    unit: '°C',
+    scaleFactor: 0.1,
+    simulateValue: (tick) => Number((4.1 + Math.cos(tick * 0.25) * 0.4).toFixed(2)),
+  },
+  {
+    slaveId: 4,
+    deviceId: 'DEV-COLD-002',
+    productId: 'cold',
+    protocol: 'MODBUS_RTU_RS485',
+    registerAddress: 30202,
+    metric: 'humidity_pct',
+    unit: '%',
+    scaleFactor: 0.1,
+    simulateValue: (tick) => Number((54.8 + Math.sin(tick * 0.2) * 1.1).toFixed(1)),
+  },
+
+  // Slave 5: Smart Home & Facility Environmental Comfort Node (KIOT Home)
+  {
+    slaveId: 5,
+    deviceId: 'DEV-HOME-001',
+    productId: 'home',
+    protocol: 'MODBUS_TCP',
+    registerAddress: 40501,
+    metric: 'indoor_temp_c',
+    unit: '°C',
+    scaleFactor: 0.1,
+    simulateValue: (tick) => Number((22.4 + Math.sin(tick * 0.1) * 0.3).toFixed(1)),
+  },
 ];
 
 export interface PolledModbusReading {

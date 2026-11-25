@@ -69,33 +69,40 @@ ALTER TABLE incidents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE incidents FORCE ROW LEVEL SECURITY;
 
 -- 5. Multi-Tenant RLS Policies
+DROP POLICY IF EXISTS alert_rules_select ON alert_rules;
 CREATE POLICY alert_rules_select ON alert_rules
   FOR SELECT USING (app.is_org_member(organization_id));
 
+DROP POLICY IF EXISTS alert_rules_insert ON alert_rules;
 CREATE POLICY alert_rules_insert ON alert_rules
   FOR INSERT WITH CHECK (
     app.is_org_member(organization_id) AND 
     app.get_org_role(organization_id) IN ('owner', 'admin', 'manager')
   );
 
+DROP POLICY IF EXISTS alert_rules_update ON alert_rules;
 CREATE POLICY alert_rules_update ON alert_rules
   FOR UPDATE USING (
     app.is_org_member(organization_id) AND 
     app.get_org_role(organization_id) IN ('owner', 'admin', 'manager')
   );
 
+DROP POLICY IF EXISTS alert_rules_delete ON alert_rules;
 CREATE POLICY alert_rules_delete ON alert_rules
   FOR DELETE USING (
     app.is_org_member(organization_id) AND 
     app.get_org_role(organization_id) IN ('owner', 'admin', 'manager')
   );
 
+DROP POLICY IF EXISTS incidents_select ON incidents;
 CREATE POLICY incidents_select ON incidents
   FOR SELECT USING (app.is_org_member(organization_id));
 
+DROP POLICY IF EXISTS incidents_insert ON incidents;
 CREATE POLICY incidents_insert ON incidents
   FOR INSERT WITH CHECK (app.is_org_member(organization_id));
 
+DROP POLICY IF EXISTS incidents_update ON incidents;
 CREATE POLICY incidents_update ON incidents
   FOR UPDATE USING (app.is_org_member(organization_id));
 

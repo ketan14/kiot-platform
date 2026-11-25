@@ -91,6 +91,7 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 -- 3. Define RLS Policies
 
 -- User Profiles: Users can view all profiles in their organizations; edit only their own
+DROP POLICY IF EXISTS user_profiles_select ON user_profiles;
 CREATE POLICY user_profiles_select ON user_profiles
   FOR SELECT USING (
     id = app.current_user_id() OR
@@ -101,71 +102,90 @@ CREATE POLICY user_profiles_select ON user_profiles
     )
   );
 
+DROP POLICY IF EXISTS user_profiles_update ON user_profiles;
 CREATE POLICY user_profiles_update ON user_profiles
   FOR UPDATE USING (id = app.current_user_id());
 
 -- Organizations: Visible if user is an active member
+DROP POLICY IF EXISTS org_select ON organizations;
 CREATE POLICY org_select ON organizations
   FOR SELECT USING (app.is_org_member(id));
 
+DROP POLICY IF EXISTS org_update ON organizations;
 CREATE POLICY org_update ON organizations
   FOR UPDATE USING (app.get_org_role(id) IN ('owner', 'admin'));
 
 -- Organization Memberships
+DROP POLICY IF EXISTS membership_select ON organization_memberships;
 CREATE POLICY membership_select ON organization_memberships
   FOR SELECT USING (app.is_org_member(organization_id));
 
+DROP POLICY IF EXISTS membership_manage ON organization_memberships;
 CREATE POLICY membership_manage ON organization_memberships
   FOR ALL USING (app.get_org_role(organization_id) IN ('owner', 'admin'));
 
 -- Locations
+DROP POLICY IF EXISTS locations_select ON locations;
 CREATE POLICY locations_select ON locations
   FOR SELECT USING (app.is_org_member(organization_id));
 
+DROP POLICY IF EXISTS locations_modify ON locations;
 CREATE POLICY locations_modify ON locations
   FOR ALL USING (app.get_org_role(organization_id) IN ('owner', 'admin', 'manager'));
 
 -- Gateways
+DROP POLICY IF EXISTS gateways_select ON gateways;
 CREATE POLICY gateways_select ON gateways
   FOR SELECT USING (app.is_org_member(organization_id));
 
+DROP POLICY IF EXISTS gateways_modify ON gateways;
 CREATE POLICY gateways_modify ON gateways
   FOR ALL USING (app.get_org_role(organization_id) IN ('owner', 'admin', 'manager'));
 
 -- Devices
+DROP POLICY IF EXISTS devices_select ON devices;
 CREATE POLICY devices_select ON devices
   FOR SELECT USING (app.is_org_member(organization_id));
 
+DROP POLICY IF EXISTS devices_modify ON devices;
 CREATE POLICY devices_modify ON devices
   FOR ALL USING (app.get_org_role(organization_id) IN ('owner', 'admin', 'manager'));
 
 -- Device Shadows
+DROP POLICY IF EXISTS shadows_select ON device_shadows;
 CREATE POLICY shadows_select ON device_shadows
   FOR SELECT USING (app.is_org_member(organization_id));
 
+DROP POLICY IF EXISTS shadows_update ON device_shadows;
 CREATE POLICY shadows_update ON device_shadows
   FOR UPDATE USING (app.is_org_member(organization_id));
 
 -- Device Commands
+DROP POLICY IF EXISTS commands_select ON device_commands;
 CREATE POLICY commands_select ON device_commands
   FOR SELECT USING (app.is_org_member(organization_id));
 
+DROP POLICY IF EXISTS commands_insert ON device_commands;
 CREATE POLICY commands_insert ON device_commands
   FOR INSERT WITH CHECK (
     app.is_org_member(organization_id) AND 
     app.get_org_role(organization_id) IN ('owner', 'admin', 'manager', 'operator')
   );
 
+DROP POLICY IF EXISTS commands_update ON device_commands;
 CREATE POLICY commands_update ON device_commands
   FOR UPDATE USING (app.is_org_member(organization_id));
 
 -- Industrial Machines
+DROP POLICY IF EXISTS machines_select ON industrial_machines;
 CREATE POLICY machines_select ON industrial_machines
   FOR SELECT USING (app.is_org_member(organization_id));
 
+DROP POLICY IF EXISTS machines_modify ON industrial_machines;
 CREATE POLICY machines_modify ON industrial_machines
   FOR ALL USING (app.get_org_role(organization_id) IN ('owner', 'admin', 'manager'));
 
 -- Audit Logs
+DROP POLICY IF EXISTS audit_select ON audit_logs;
 CREATE POLICY audit_select ON audit_logs
   FOR SELECT USING (app.get_org_role(organization_id) IN ('owner', 'admin'));

@@ -1,0 +1,53 @@
+# ==============================================================================
+# KIOT Platform – Production Deployment Manifest
+# File: infrastructure/deployment/docker-compose.prod.yml
+# ==============================================================================
+
+services:
+  emqx:
+    image: emqx/emqx:5.8.5
+    container_name: kiot-emqx-prod
+    restart: always
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+      - "18083:18083"
+    environment:
+      - EMQX_ALLOW_ANONYMOUS=false
+    volumes:
+      - ../emqx/acl.conf:/opt/emqx/etc/acl.conf:ro
+      - emqx_prod_data:/opt/emqx/data
+    networks:
+      - kiot-prod-net
+
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: kiot-postgres-prod
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      - POSTGRES_DB=${POSTGRES_DB:-kiot_prod}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    networks:
+      - kiot-prod-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: kiot-redis-prod
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_prod_data:/data
+    networks:
+      - kiot-prod-net
+
+networks:
+  kiot-prod-net:
+    driver: bridge
+
+volumes:
+  emqx_prod_data:
+  postgres_prod_data:
+  redis_prod_data:
